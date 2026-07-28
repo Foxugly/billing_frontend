@@ -101,7 +101,7 @@ function unwrap<T>(body: T[] | { results: T[] }): T[] {
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
   private readonly http = inject(HttpClient);
-  private readonly base = getRuntimeConfig().apiBaseUrl + '/api/admin';
+  private readonly base = getRuntimeConfig().apiBaseUrl + '/api/v1/admin';
 
   dashboard() {
     return firstValueFrom(this.http.get<Dashboard>(`${this.base}/dashboard/`));
