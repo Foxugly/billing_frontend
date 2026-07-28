@@ -33,7 +33,7 @@ type Severity = 'success' | 'warn' | 'danger';
     PageHeaderComponent,
   ],
   template: `
-    <section class="page">
+    <section>
       <app-page-header [icon]="'pi-send'" [title]="'deliveries.title' | transloco" />
 
       <p-selectbutton
@@ -102,7 +102,7 @@ type Severity = 'success' | 'warn' | 'danger';
       .error {
         max-width: 18rem;
         font-size: 0.85rem;
-        color: var(--text-color-secondary);
+        color: var(--muted);
         word-break: break-word;
       }
     `,

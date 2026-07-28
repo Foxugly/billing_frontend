@@ -13,7 +13,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
   standalone: true,
   imports: [RouterLink, TranslocoPipe, SkeletonModule, TagModule, PageHeaderComponent],
   template: `
-    <section class="page">
+    <section>
       <app-page-header [icon]="'pi-chart-line'" [title]="'dashboard.title' | transloco" />
 
       @if (loading()) {
@@ -82,25 +82,25 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
         flex-direction: column;
         gap: 0.35rem;
         padding: 1.25rem;
-        border: 1px solid var(--surface-border);
-        border-radius: var(--radius-md, 0.5rem);
-        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
         text-decoration: none;
         color: inherit;
       }
       .tile--action:hover {
-        border-color: var(--primary-color);
+        border-color: var(--accent);
       }
       .tile__label {
         font-size: 0.85rem;
-        color: var(--text-color-secondary);
+        color: var(--muted);
       }
       .tile__value {
         font-size: 1.75rem;
         line-height: 1.1;
       }
       .tile__value--alert {
-        color: var(--red-500, #ef4444);
+        color: var(--danger);
       }
       .section-title {
         font-size: 1.1rem;
@@ -116,9 +116,9 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
         align-items: center;
         gap: 1rem;
         padding: 0.75rem 1rem;
-        border: 1px solid var(--surface-border);
-        border-radius: var(--radius-md, 0.5rem);
-        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
       }
       .app-row__main {
         display: flex;
@@ -126,11 +126,11 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
         flex: 1;
       }
       .app-row__counts {
-        color: var(--text-color-secondary);
+        color: var(--muted);
         font-size: 0.9rem;
       }
       .muted {
-        color: var(--text-color-secondary);
+        color: var(--muted);
       }
       @media (max-width: 600px) {
         .app-row {

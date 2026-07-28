@@ -26,7 +26,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
     PageHeaderComponent,
   ],
   template: `
-    <section class="page">
+    <section>
       <app-page-header [icon]="'pi-th-large'" [title]="'apps.title' | transloco" />
 
       @if (loading()) {
@@ -112,14 +112,14 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
       }
       .secret {
         padding: 0.75rem;
-        border: 1px solid var(--surface-border);
-        border-radius: var(--radius-md, 0.5rem);
-        background: var(--surface-ground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-2);
         white-space: pre-wrap;
         word-break: break-all;
       }
       .warn {
-        color: var(--text-color-secondary);
+        color: var(--muted);
       }
     `,
   ],
