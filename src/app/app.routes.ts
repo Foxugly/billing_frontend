@@ -22,6 +22,20 @@ export const routes: Routes = [
           import('./features/apps/apps-list.component').then((m) => m.AppsListComponent),
       },
       {
+        path: 'customers',
+        loadComponent: () =>
+          import('./features/customers/customers-list.component').then(
+            (m) => m.CustomersListComponent,
+          ),
+      },
+      {
+        path: 'entitlements',
+        loadComponent: () =>
+          import('./features/entitlements/entitlements-list.component').then(
+            (m) => m.EntitlementsListComponent,
+          ),
+      },
+      {
         path: 'deliveries',
         loadComponent: () =>
           import('./features/deliveries/deliveries-list.component').then(

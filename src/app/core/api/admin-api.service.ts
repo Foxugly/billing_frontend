@@ -44,6 +44,10 @@ export interface BillingPlan {
   price_monthly_amount: number | null;
   price_yearly_amount: number | null;
   quotas: Record<string, number>;
+  /** Non vide = plan facture a l'unite : le quota suit la quantite souscrite,
+   *  et `quotas` est vide. Offrir l'acces demande alors un nombre d'unites. */
+  per_unit_quota_key: string;
+  trial_days: number;
   sort_order: number;
   public: boolean;
   active: boolean;
