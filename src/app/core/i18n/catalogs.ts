@@ -47,7 +47,6 @@ const en: Translation = {
     mrr: 'Monthly recurring revenue',
     customers: 'Customers',
     pending: 'Pending deliveries',
-    failed: 'Failed deliveries',
     per_app: 'Per application',
     paid_of_known: 'paying',
     no_app: 'No application connected yet.',
@@ -79,7 +78,6 @@ const en: Translation = {
     replay_failed: 'Replay failed.',
     all: 'All',
     pending: 'Pending',
-    failed: 'Failed',
     delivered: 'Delivered',
   },
   login: {
@@ -96,19 +94,20 @@ const en: Translation = {
     no_account: 'No account yet?',
     register: 'Create an account',
     success: 'Signed in',
-    demo_hint: 'Demo: any email + password works.',
+    staff_only: 'Access is restricted to Foxugly operators.',
+    failed: 'Login refused: unknown account, wrong password, or not an operator.',
   },
   privacy: {
     title: 'Privacy',
     lead: 'This is a stub privacy page so the footer link resolves.',
-    body: 'The Foo Reference app is a runnable demonstration of the Foxugly fleet frontend standard. It stores nothing on any server: the backend is mocked in-memory in your browser and cleared on reload.',
+    body: 'Operator console for the Foxugly billing service. Access is restricted to staff accounts; no personal data is collected from visitors.',
   },
 };
 
 const fr: Translation = {
   app: {
     title: 'Foxugly Billing',
-    tagline: 'App de référence des frontends de la flotte',
+    tagline: 'Console de facturation de la flotte',
   },
   common: {
     skip_to_content: 'Aller au contenu',
@@ -145,7 +144,6 @@ const fr: Translation = {
     mrr: 'Revenu mensuel récurrent',
     customers: 'Clients',
     pending: 'Livraisons en attente',
-    failed: 'Livraisons en échec',
     per_app: 'Par application',
     paid_of_known: 'payants',
     no_app: 'Aucune application branchée pour le moment.',
@@ -177,7 +175,6 @@ const fr: Translation = {
     replay_failed: 'Le rejeu a échoué.',
     all: 'Toutes',
     pending: 'En attente',
-    failed: 'En échec',
     delivered: 'Livrées',
   },
   login: {
@@ -194,12 +191,13 @@ const fr: Translation = {
     no_account: 'Pas encore de compte ?',
     register: 'Créer un compte',
     success: 'Connecté',
-    demo_hint: 'Démo : n’importe quel email + mot de passe fonctionne.',
+    staff_only: 'L’accès est réservé aux opérateurs Foxugly.',
+    failed: 'Connexion refusée : compte inconnu, mot de passe erroné, ou compte non-opérateur.',
   },
   privacy: {
     title: 'Confidentialité',
     lead: 'Page de confidentialité factice pour que le lien du footer se résolve.',
-    body: 'L’app Foo Reference est une démonstration exécutable du standard de layout des frontends de la flotte Foxugly. Elle ne stocke rien sur aucun serveur : le backend est simulé en mémoire dans votre navigateur et réinitialisé au rechargement.',
+    body: 'Console d’exploitation du service de facturation Foxugly. L’accès est réservé aux comptes opérateurs ; aucune donnée personnelle de visiteur n’est collectée.',
   },
 };
 
@@ -219,7 +217,7 @@ function deepMerge(base: Translation, override: Translation): Translation {
 
 // nl / it / es — localized chrome only, English fallback for the rest (stubs).
 const nl = deepMerge(en, {
-  app: { tagline: 'Referentie-app voor de frontends van de vloot' },
+  app: { tagline: 'Facturatieconsole van de vloot' },
   common: { skip_to_content: 'Naar inhoud', language_switcher: { aria: 'Taal wijzigen' }, cancel: 'Annuleren' },
   chrome: {
     nav: { soutenir: 'Steunen', aria_main: 'Hoofdnavigatie', aria_mobile: 'Mobiele navigatie' },
@@ -231,7 +229,7 @@ const nl = deepMerge(en, {
 });
 
 const it = deepMerge(en, {
-  app: { tagline: 'App di riferimento per i frontend della flotta' },
+  app: { tagline: 'Console di fatturazione della flotta' },
   common: { skip_to_content: 'Vai al contenuto', language_switcher: { aria: 'Cambia lingua' }, cancel: 'Annulla' },
   chrome: {
     nav: { soutenir: 'Sostieni', aria_main: 'Navigazione principale', aria_mobile: 'Navigazione mobile' },
@@ -243,7 +241,7 @@ const it = deepMerge(en, {
 });
 
 const es = deepMerge(en, {
-  app: { tagline: 'App de referencia para los frontends de la flota' },
+  app: { tagline: 'Consola de facturación de la flota' },
   common: { skip_to_content: 'Ir al contenido', language_switcher: { aria: 'Cambiar idioma' }, cancel: 'Cancelar' },
   chrome: {
     nav: { soutenir: 'Apoyar', aria_main: 'Navegación principal', aria_mobile: 'Navegación móvil' },

@@ -2,7 +2,7 @@
   <div class="topbar__inner">
     <a [routerLink]="brandLink()" class="topbar__brand" (click)="closeMenu()">
       <i class="pi pi-bolt topbar__brand-icon"></i>
-      <span class="topbar__brand-name">Foo Reference</span>
+      <span class="topbar__brand-name">{{ 'app.title' | transloco }}</span>
     </a>
 
     <nav class="topbar__nav" [attr.aria-label]="'chrome.nav.aria_main' | transloco">

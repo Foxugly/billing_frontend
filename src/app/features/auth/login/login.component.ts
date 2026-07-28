@@ -38,8 +38,6 @@ export class LoginComponent {
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
 
-  /** Inline magic-link mode (email only), toggled from the login card. */
-  protected readonly magicMode = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -72,21 +70,6 @@ export class LoginComponent {
     }
   }
 
-  protected toggleMagic(): void {
-    this.magicMode.update((v) => !v);
-  }
 
-  protected sendMagic(): void {
-    if (this.form.controls.email.invalid) {
-      this.form.controls.email.markAsTouched();
-      return;
-    }
-    this.messages.add({ severity: 'info', summary: this.transloco.translate('login.magic_sent') });
-    this.magicMode.set(false);
-  }
 
-  /** Register / forgot-password are not built in this reference — inform the user. */
-  protected stub(): void {
-    this.messages.add({ severity: 'info', summary: this.transloco.translate('login.demo_hint') });
-  }
 }

@@ -53,7 +53,7 @@ export class TopmenuComponent {
 
   readonly links = computed<NavLink[]>(() => {
     if (this.mode() === 'public') {
-      return [this.support];
+      return [];
     }
     return [
       { label: 'chrome.nav.dashboard', icon: 'pi pi-chart-line', link: '/dashboard' },
