@@ -1,0 +1,99 @@
+.login-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.login-field {
+  display: grid;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+// p-password / p-button are full-width in the auth card.
+:host ::ng-deep .login-password,
+:host ::ng-deep .login-password input {
+  width: 100%;
+}
+
+:host ::ng-deep .login-submit {
+  width: 100%;
+
+  .p-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.login-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-remember {
+  margin-right: auto;
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.login-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  &--center {
+    justify-self: center;
+    text-align: center;
+  }
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--border);
+  }
+
+  span {
+    padding: 0 0.75rem;
+  }
+}
+
+.login-alt {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.login-hint {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+}

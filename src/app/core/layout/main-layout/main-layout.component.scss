@@ -1,0 +1,5 @@
+// .fox-shell / .main-container / .fox-skip-link → src/styles/_shell.scss
+// (shared with public-layout so the two shells never drift).
+:host {
+  display: block;
+}

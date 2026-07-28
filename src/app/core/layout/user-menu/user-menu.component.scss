@@ -1,0 +1,156 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+}
+
+// ── Wrapper (anchors the right-aligned panel) ───────────────────────────────
+.user-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+// ── Trigger (user icon + email) — same height/box as the theme toggle &
+//    language switcher (borderless, height 2.25rem). ──────────────────────────
+.user-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.user-trigger__email {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On narrow screens keep just the icon (the drawer carries the rest). */
+@media (max-width: 1024px) {
+  .user-trigger__email {
+    display: none;
+  }
+}
+
+// ── Panel (custom dropdown, anchored right) ─────────────────────────────────
+.user-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 60;
+  min-width: 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.user-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+}
+
+.user-menu__item-icon {
+  width: 1rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.user-menu__item--danger {
+  color: var(--danger);
+
+  .user-menu__item-icon {
+    color: var(--danger);
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: var(--danger-soft);
+  }
+}
+
+// ── Separator ───────────────────────────────────────────────────────────────
+.user-menu__sep {
+  height: 1px;
+  margin: 0.3rem 0.2rem;
+  background: var(--border);
+}
+
+// ── Sign-in button (outlined emerald), shown when logged out ─────────────────
+.user-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--chrome-ink-strong);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,25 @@
+// Auth card shell rendered INSIDE the public-layout (topmenu + footer around
+// it). No full-screen shell — just a horizontally centred card.
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 2rem auto;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  padding-bottom: 0;
+}
+
+.auth-brand-icon {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.brand {
+  font-size: 1.5rem;
+}

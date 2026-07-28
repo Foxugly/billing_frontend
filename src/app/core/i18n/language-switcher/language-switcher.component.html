@@ -1,0 +1,36 @@
+<div class="ls-root">
+  <button
+    type="button"
+    class="ls-trigger"
+    [pTooltip]="currentNativeName()"
+    [attr.aria-label]="'common.language_switcher.aria' | transloco"
+    [attr.aria-haspopup]="'menu'"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="'ls-menu'"
+    (click)="toggle()"
+  >
+    <span class="ls-code">{{ current() | uppercase }}</span>
+  </button>
+
+  @if (open()) {
+    <div role="menu" id="ls-menu" class="ls-menu">
+      @for (lang of languages; track lang.code; let i = $index) {
+        <button
+          #menuitem
+          type="button"
+          role="menuitem"
+          class="ls-item"
+          [class.is-active]="lang.code === current()"
+          [attr.aria-current]="lang.code === current() ? 'true' : null"
+          [attr.tabindex]="i === focusedIndex() ? 0 : -1"
+          (click)="select(lang.code)"
+        >
+          <span class="ls-chip">{{ lang.code }}</span>
+          @if (lang.code === current()) {
+            <i class="pi pi-check ls-check" aria-hidden="true"></i>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,62 @@
+// Shared form layout system (fleet OPERATIONS.md §3.15). Global (not component-
+// scoped) so inline-template standalone forms can use the classes.
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr; // single column by default
+  gap: 1rem;
+
+  &.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  &.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 767px) {
+    &.cols-2,
+    &.cols-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// One field cell — FLAT: no per-field border / fill / padding.
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.meta-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.meta-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  > * {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+.meta-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+
+  &--error {
+    color: var(--danger);
+  }
+}

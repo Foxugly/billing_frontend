@@ -1,0 +1,91 @@
+<header class="topbar">
+  <div class="topbar__inner">
+    <a [routerLink]="brandLink()" class="topbar__brand" (click)="closeMenu()">
+      <i class="pi pi-bolt topbar__brand-icon"></i>
+      <span class="topbar__brand-name">Foo Reference</span>
+    </a>
+
+    <nav class="topbar__nav" [attr.aria-label]="'chrome.nav.aria_main' | transloco">
+      @for (item of links(); track item.label) {
+        @if (item.href) {
+          <a
+            [href]="item.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="topbar__link"
+            [class.topbar__link--support]="item.support"
+          >
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | transloco }}</span>
+          </a>
+        } @else {
+          <a
+            [routerLink]="item.link"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+            class="topbar__link"
+            [class.topbar__link--support]="item.support"
+          >
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | transloco }}</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <div class="topbar__actions">
+      <button
+        type="button"
+        class="topbar__icon-btn"
+        (click)="theme.toggle()"
+        [pTooltip]="'chrome.theme.toggle' | transloco"
+        [attr.aria-label]="'chrome.theme.toggle' | transloco"
+      >
+        <i [class]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'" aria-hidden="true"></i>
+      </button>
+      <app-language-switcher />
+      <app-user-menu />
+      <button
+        type="button"
+        class="topbar__toggle"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? ('chrome.menu.close' | transloco) : ('chrome.menu.open' | transloco)"
+        (click)="toggleMenu()"
+      >
+        <i class="pi" [class.pi-bars]="!menuOpen()" [class.pi-times]="menuOpen()"></i>
+      </button>
+    </div>
+  </div>
+
+  @if (menuOpen()) {
+    <nav class="topbar__drawer" [attr.aria-label]="'chrome.nav.aria_mobile' | transloco">
+      @for (item of links(); track item.label) {
+        @if (item.href) {
+          <a
+            [href]="item.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="topbar__drawer-link"
+            [class.topbar__link--support]="item.support"
+            (click)="closeMenu()"
+          >
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | transloco }}</span>
+          </a>
+        } @else {
+          <a
+            [routerLink]="item.link"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+            class="topbar__drawer-link"
+            [class.topbar__link--support]="item.support"
+            (click)="closeMenu()"
+          >
+            <i [class]="item.icon"></i>
+            <span>{{ item.label | transloco }}</span>
+          </a>
+        }
+      }
+    </nav>
+  }
+</header>

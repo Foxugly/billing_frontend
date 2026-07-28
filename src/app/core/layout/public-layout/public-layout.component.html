@@ -1,0 +1,8 @@
+<div class="fox-shell">
+  <a href="#main-content" class="fox-skip-link">{{ 'common.skip_to_content' | transloco }}</a>
+  <app-topmenu [mode]="'public'" />
+  <main id="main-content" tabindex="-1" class="main-container">
+    <router-outlet />
+  </main>
+  <app-footer />
+</div>

@@ -1,0 +1,15 @@
+<header class="page-header">
+  <div class="page-header__slot page-header__slot--left">
+    <ng-content select="[slot=left]" />
+  </div>
+  <div class="page-header__title-row">
+    @if (icon()) {
+      <i [class]="'pi ' + icon()" class="page-header__icon"></i>
+    }
+    <h1 class="page-header__title">{{ title() }}</h1>
+    <ng-content select="[slot=title-after]" />
+  </div>
+  <div class="page-header__slot page-header__slot--right">
+    <ng-content select="[slot=right]" />
+  </div>
+</header>
