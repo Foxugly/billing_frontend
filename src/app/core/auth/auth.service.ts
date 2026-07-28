@@ -47,7 +47,7 @@ export class AuthService {
 
   async login(email: string, password: string, remember: boolean): Promise<void> {
     const pair = await firstValueFrom(
-      this.http.post<TokenPair>(`${this.base}/api/auth/token/`, { email, password }),
+      this.http.post<TokenPair>(`${this.base}/api/v1/auth/token/`, { email, password }),
     );
     this.store(pair, remember);
     await this.loadCurrentUser();
@@ -56,7 +56,7 @@ export class AuthService {
   async loadCurrentUser(): Promise<CurrentUser | null> {
     if (!this._access()) return null;
     try {
-      const user = await firstValueFrom(this.http.get<CurrentUser>(`${this.base}/api/auth/me/`));
+      const user = await firstValueFrom(this.http.get<CurrentUser>(`${this.base}/api/v1/auth/me/`));
       this._user.set(user);
       return user;
     } catch {
@@ -71,7 +71,7 @@ export class AuthService {
     if (!refresh) return false;
     try {
       const pair = await firstValueFrom(
-        this.http.post<TokenPair>(`${this.base}/api/auth/token/refresh/`, { refresh }),
+        this.http.post<TokenPair>(`${this.base}/api/v1/auth/token/refresh/`, { refresh }),
       );
       // Le refresh roté DOIT être persisté : l'ancien vient d'être blacklisté.
       this.store({ access: pair.access, refresh: pair.refresh ?? refresh }, isRemembered());

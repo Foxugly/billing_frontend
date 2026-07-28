@@ -5,7 +5,7 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 
 /** Chemins d'authentification : y attacher le jeton créerait une boucle. */
-const AUTH_PATHS = ['/api/auth/token/', '/api/auth/token/refresh/'];
+const AUTH_PATHS = ['/api/v1/auth/token/', '/api/v1/auth/token/refresh/'];
 
 /**
  * Attache le jeton d'accès, et retente **une seule fois** après un 401 en

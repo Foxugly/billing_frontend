@@ -32,7 +32,7 @@ describe('AuthService', () => {
 
     const refreshed = service.refresh();
     http
-      .expectOne((r) => r.url.endsWith('/api/auth/token/refresh/'))
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/'))
       .flush({ access: 'nouvel-acces', refresh: 'nouveau-refresh' });
 
     expect(await refreshed).toBe(true);
@@ -45,7 +45,7 @@ describe('AuthService', () => {
     sessionStorage.setItem('billing.refresh', 'refresh-inchange');
 
     const refreshed = service.refresh();
-    http.expectOne((r) => r.url.endsWith('/api/auth/token/refresh/')).flush({ access: 'b' });
+    http.expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/')).flush({ access: 'b' });
 
     expect(await refreshed).toBe(true);
     expect(sessionStorage.getItem('billing.refresh')).toBe('refresh-inchange');
@@ -57,7 +57,7 @@ describe('AuthService', () => {
 
     const refreshed = service.refresh();
     http
-      .expectOne((r) => r.url.endsWith('/api/auth/token/refresh/'))
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/'))
       .flush({ detail: 'blacklisted' }, { status: 401, statusText: 'Unauthorized' });
 
     expect(await refreshed).toBe(false);
@@ -72,10 +72,10 @@ describe('AuthService', () => {
 
   it('range les jetons en session quand « se souvenir » est décoché', async () => {
     const login = service.login('ops@example.com', 'x', false);
-    http.expectOne((r) => r.url.endsWith('/api/auth/token/')).flush({ access: 'a', refresh: 'r' });
+    http.expectOne((r) => r.url.endsWith('/api/v1/auth/token/')).flush({ access: 'a', refresh: 'r' });
     // Le service enchaine sur /me/ apres un await : laisser la microtache passer.
     await new Promise((resolve) => setTimeout(resolve, 0));
-    http.expectOne((r) => r.url.endsWith('/api/auth/me/')).flush({
+    http.expectOne((r) => r.url.endsWith('/api/v1/auth/me/')).flush({
       id: 1,
       email: 'ops@example.com',
       displayName: 'Ops',
