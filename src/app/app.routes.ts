@@ -48,6 +48,11 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'events',
+        loadComponent: () =>
+          import('./features/events/events-list.component').then((m) => m.EventsListComponent),
+      },
+      {
         path: 'invoices',
         loadComponent: () =>
           import('./features/invoices/invoices-list.component').then(

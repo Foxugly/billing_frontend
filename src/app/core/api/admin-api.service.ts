@@ -53,6 +53,19 @@ export interface BillingPlan {
   active: boolean;
 }
 
+/** Un evenement Stripe recu, et ce que le service en a fait. */
+export interface StripeEvent {
+  id: string;
+  type: string;
+  created: string | null;
+  livemode: boolean;
+  /** Faux = ce type d'evenement ne declenche aucun recalcul chez nous. */
+  handled: boolean;
+  /** Vide = evenement non attribuable a une app : le webhook l'a ignore. */
+  app_slug: string;
+  external_user_id: string;
+}
+
 /** Un prix Stripe mire, tel que le selecteur de la page Plans l'affiche. */
 export interface StripePrice {
   id: string;
@@ -164,6 +177,23 @@ export class AdminApiService {
   async plans(appSlug?: string): Promise<BillingPlan[]> {
     const query = appSlug ? `?app=${encodeURIComponent(appSlug)}` : '';
     return unwrap(await firstValueFrom(this.http.get<BillingPlan[]>(`${this.base}/plans/${query}`)));
+  }
+
+  async events(filters: { type?: string; handled?: boolean } = {}): Promise<StripeEvent[]> {
+    const params = new URLSearchParams();
+    if (filters.type) params.set('type', filters.type);
+    if (filters.handled) params.set('handled', 'true');
+    const query = params.toString() ? `?${params}` : '';
+    return unwrap(await firstValueFrom(this.http.get<StripeEvent[]>(`${this.base}/events/${query}`)));
+  }
+
+  replayEvent(id: string) {
+    return firstValueFrom(
+      this.http.post<{ id: string; delivery: string | null; detail: string }>(
+        `${this.base}/events/${id}/replay/`,
+        {},
+      ),
+    );
   }
 
   async prices(): Promise<StripePrice[]> {

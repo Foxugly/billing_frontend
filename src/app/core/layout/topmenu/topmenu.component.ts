@@ -62,6 +62,7 @@ export class TopmenuComponent {
       { label: 'chrome.nav.customers', icon: 'pi pi-users', link: '/customers' },
       { label: 'chrome.nav.entitlements', icon: 'pi pi-key', link: '/entitlements' },
       { label: 'chrome.nav.deliveries', icon: 'pi pi-send', link: '/deliveries' },
+      { label: 'chrome.nav.events', icon: 'pi pi-bolt', link: '/events' },
       { label: 'chrome.nav.invoices', icon: 'pi pi-file', link: '/invoices' },
     ];
   });
