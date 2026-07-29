@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { MessageService } from 'primeng/api';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 
@@ -142,6 +143,8 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 })
 export class DashboardComponent {
   private readonly api = inject(AdminApiService);
+  private readonly messages = inject(MessageService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly data = signal<Dashboard | null>(null);
   protected readonly loading = signal(true);
@@ -154,6 +157,13 @@ export class DashboardComponent {
   private async load(): Promise<void> {
     try {
       this.data.set(await this.api.dashboard());
+    } catch {
+      // Sans ce catch, l'echec remontait en rejection non geree : la page
+      // restait muette et rien n'apparaissait, pas meme une erreur.
+      this.messages.add({
+        severity: 'error',
+        summary: this.transloco.translate('dashboard.load_failed'),
+      });
     } finally {
       this.loading.set(false);
     }
