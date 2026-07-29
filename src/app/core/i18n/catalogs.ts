@@ -62,6 +62,7 @@ const en: Translation = {
     per_app: 'Per application',
     paid_of_known: 'paying',
     no_app: 'No application connected yet.',
+    load_failed: 'Could not load the figures.',
   },
   apps: {
     title: 'Applications',
@@ -298,6 +299,7 @@ const fr: Translation = {
     per_app: 'Par application',
     paid_of_known: 'payants',
     no_app: 'Aucune application branchée pour le moment.',
+    load_failed: 'Impossible de charger les chiffres.',
   },
   apps: {
     title: 'Applications',
