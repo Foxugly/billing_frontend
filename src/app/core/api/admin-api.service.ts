@@ -53,6 +53,17 @@ export interface BillingPlan {
   active: boolean;
 }
 
+/** Un prix Stripe mire, tel que le selecteur de la page Plans l'affiche. */
+export interface StripePrice {
+  id: string;
+  unit_amount: number | null;
+  currency: string;
+  /** '' pour un prix ponctuel : il n'y a pas d'intervalle a afficher. */
+  interval: string;
+  nickname: string;
+  product_name: string;
+}
+
 export interface BillingCustomer {
   id: number;
   app: number | null;
@@ -153,6 +164,20 @@ export class AdminApiService {
   async plans(appSlug?: string): Promise<BillingPlan[]> {
     const query = appSlug ? `?app=${encodeURIComponent(appSlug)}` : '';
     return unwrap(await firstValueFrom(this.http.get<BillingPlan[]>(`${this.base}/plans/${query}`)));
+  }
+
+  async prices(): Promise<StripePrice[]> {
+    return unwrap(await firstValueFrom(this.http.get<StripePrice[]>(`${this.base}/prices/`)));
+  }
+
+  savePlan(plan: Partial<BillingPlan>) {
+    return plan.id
+      ? firstValueFrom(this.http.patch<BillingPlan>(`${this.base}/plans/${plan.id}/`, plan))
+      : firstValueFrom(this.http.post<BillingPlan>(`${this.base}/plans/`, plan));
+  }
+
+  deletePlan(id: number) {
+    return firstValueFrom(this.http.delete<void>(`${this.base}/plans/${id}/`));
   }
 
   async customers(filters: { app?: string; email?: string } = {}): Promise<BillingCustomer[]> {

@@ -58,6 +58,7 @@ export class TopmenuComponent {
     return [
       { label: 'chrome.nav.dashboard', icon: 'pi pi-chart-line', link: '/dashboard' },
       { label: 'chrome.nav.apps', icon: 'pi pi-th-large', link: '/apps' },
+      { label: 'chrome.nav.plans', icon: 'pi pi-tags', link: '/plans' },
       { label: 'chrome.nav.customers', icon: 'pi pi-users', link: '/customers' },
       { label: 'chrome.nav.entitlements', icon: 'pi pi-key', link: '/entitlements' },
       { label: 'chrome.nav.deliveries', icon: 'pi pi-send', link: '/deliveries' },
