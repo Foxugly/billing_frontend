@@ -93,6 +93,45 @@ export interface Delivery {
   payload: Record<string, unknown>;
 }
 
+/** Une facture, telle que le miroir dj-stripe la restitue. Montants en centimes. */
+export interface Invoice {
+  id: string;
+  number: string | null;
+  status: string;
+  currency: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  amount_due: number;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+  created: string | null;
+  customer_email: string;
+  /** 'direct' pour une prestation, sinon le slug de l'app qui a vendu. */
+  origin: string;
+}
+
+export interface InvoiceLineDraft {
+  description: string;
+  quantity: number;
+  /** En centimes : un montant facturé ne se manipule pas en flottant. */
+  unit_amount: number;
+  tax_code?: string;
+}
+
+export interface InvoiceDraft {
+  customer: { email: string; name?: string; address?: Record<string, string> };
+  lines: InvoiceLineDraft[];
+  days_until_due: number;
+  description?: string;
+}
+
+export interface TaxCode {
+  id: string;
+  name: string;
+  description?: string;
+}
+
 /** DRF pagine parfois, parfois non : accepter les deux évite une page vide muette. */
 function unwrap<T>(body: T[] | { results: T[] }): T[] {
   return Array.isArray(body) ? body : (body?.results ?? []);
@@ -154,6 +193,37 @@ export class AdminApiService {
 
   pingApp(id: number) {
     return firstValueFrom(this.http.post<{ ok: boolean; detail: string }>(`${this.base}/apps/${id}/ping/`, {}));
+  }
+
+  async invoices(origin?: string): Promise<Invoice[]> {
+    const query = origin ? `?origin=${encodeURIComponent(origin)}` : '';
+    return unwrap(await firstValueFrom(this.http.get<Invoice[]>(`${this.base}/invoices/${query}`)));
+  }
+
+  createInvoice(draft: InvoiceDraft) {
+    return firstValueFrom(this.http.post<Invoice>(`${this.base}/invoices/`, draft));
+  }
+
+  /** finalize · send · mark_paid · void — le cycle de vie vit chez Stripe. */
+  invoiceAction(id: string, action: 'finalize' | 'send' | 'mark_paid' | 'void') {
+    return firstValueFrom(this.http.post<Invoice>(`${this.base}/invoices/${id}/${action}/`, {}));
+  }
+
+  /** L'export part en CSV : on le récupère en blob pour déclencher un téléchargement. */
+  exportInvoices(from?: string, to?: string) {
+    const params = new URLSearchParams();
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const query = params.toString() ? `?${params}` : '';
+    return firstValueFrom(
+      this.http.get(`${this.base}/invoices/export/${query}`, { responseType: 'blob' }),
+    );
+  }
+
+  /** Les codes fiscaux viennent de Stripe : en inventer un donnerait une TVA fausse. */
+  async taxCodes(search: string): Promise<TaxCode[]> {
+    const query = search ? `?q=${encodeURIComponent(search)}` : '';
+    return firstValueFrom(this.http.get<TaxCode[]>(`${this.base}/tax-codes/${query}`));
   }
 
   /** Le secret n'est renvoyé qu'ici, une seule fois : il n'est plus relisible ensuite. */
