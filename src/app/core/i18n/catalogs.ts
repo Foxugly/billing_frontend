@@ -11,6 +11,10 @@ const en: Translation = {
   app: {
     title: 'Foxugly Billing',
     tagline: 'Console de facturation de la flotte',
+    update: {
+      title: 'A new version is available',
+      detail: 'The app was updated while you were here. Reload the page to continue.',
+    },
   },
   common: {
     skip_to_content: 'Skip to content',
@@ -248,6 +252,10 @@ const fr: Translation = {
   app: {
     title: 'Foxugly Billing',
     tagline: 'Console de facturation de la flotte',
+    update: {
+      title: 'Nouvelle version disponible',
+      detail: "L'application a été mise à jour pendant votre visite. Rechargez la page pour continuer.",
+    },
   },
   common: {
     skip_to_content: 'Aller au contenu',
@@ -497,7 +505,13 @@ function deepMerge(base: Translation, override: Translation): Translation {
 
 // nl / it / es — localized chrome only, English fallback for the rest (stubs).
 const nl = deepMerge(en, {
-  app: { tagline: 'Facturatieconsole van de vloot' },
+  app: {
+    tagline: 'Facturatieconsole van de vloot',
+    update: {
+      title: 'Nieuwe versie beschikbaar',
+      detail: "De app is bijgewerkt terwijl u bezig was. Herlaad de pagina om verder te gaan.",
+    },
+  },
   common: { skip_to_content: 'Naar inhoud', language_switcher: { aria: 'Taal wijzigen' }, cancel: 'Annuleren', save: 'Opslaan', close: 'Sluiten', search: 'Zoeken', status: 'Status', actions: 'Acties', active: 'Actief', inactive: 'Inactief' },
   chrome: {
     nav: { plans: 'Plannen', customers: 'Klanten', entitlements: 'Rechten', events: 'Gebeurtenissen', invoices: 'Facturen', soutenir: 'Steunen', aria_main: 'Hoofdnavigatie', aria_mobile: 'Mobiele navigatie' },
@@ -509,7 +523,13 @@ const nl = deepMerge(en, {
 });
 
 const it = deepMerge(en, {
-  app: { tagline: 'Console di fatturazione della flotta' },
+  app: {
+    tagline: 'Console di fatturazione della flotta',
+    update: {
+      title: 'Nuova versione disponibile',
+      detail: "L'app è stata aggiornata mentre eri qui. Ricarica la pagina per continuare.",
+    },
+  },
   common: { skip_to_content: 'Vai al contenuto', language_switcher: { aria: 'Cambia lingua' }, cancel: 'Annulla', save: 'Salva', close: 'Chiudi', search: 'Cerca', status: 'Stato', actions: 'Azioni', active: 'Attivo', inactive: 'Inattivo' },
   chrome: {
     nav: { plans: 'Piani', customers: 'Clienti', entitlements: 'Diritti', events: 'Eventi', invoices: 'Fatture', soutenir: 'Sostieni', aria_main: 'Navigazione principale', aria_mobile: 'Navigazione mobile' },
@@ -521,7 +541,13 @@ const it = deepMerge(en, {
 });
 
 const es = deepMerge(en, {
-  app: { tagline: 'Consola de facturación de la flota' },
+  app: {
+    tagline: 'Consola de facturación de la flota',
+    update: {
+      title: 'Nueva versión disponible',
+      detail: "La aplicación se actualizó mientras estabas aquí. Recarga la página para continuar.",
+    },
+  },
   common: { skip_to_content: 'Ir al contenido', language_switcher: { aria: 'Cambiar idioma' }, cancel: 'Cancelar', save: 'Guardar', close: 'Cerrar', search: 'Buscar', status: 'Estado', actions: 'Acciones', active: 'Activo', inactive: 'Inactivo' },
   chrome: {
     nav: { plans: 'Planes', customers: 'Clientes', entitlements: 'Derechos', events: 'Eventos', invoices: 'Facturas', soutenir: 'Apoyar', aria_main: 'Navegación principal', aria_mobile: 'Navegación móvil' },
