@@ -220,7 +220,7 @@
     "export_failed": "Export failed."
   },
   "login": {
-    "title": "Sign in",
+    "title": "Inloggen",
     "email": "Email",
     "password": "Password",
     "remember": "Remember me",
