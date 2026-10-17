@@ -13,21 +13,25 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
+        data: { titleKey: 'dashboard.title' },
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'apps',
+        data: { titleKey: 'apps.title' },
         loadComponent: () =>
           import('./features/apps/apps-list.component').then((m) => m.AppsListComponent),
       },
       {
         path: 'plans',
+        data: { titleKey: 'plans.title' },
         loadComponent: () =>
           import('./features/plans/plans-list.component').then((m) => m.PlansListComponent),
       },
       {
         path: 'customers',
+        data: { titleKey: 'customers.title' },
         loadComponent: () =>
           import('./features/customers/customers-list.component').then(
             (m) => m.CustomersListComponent,
@@ -35,6 +39,7 @@ export const routes: Routes = [
       },
       {
         path: 'entitlements',
+        data: { titleKey: 'entitlements.title' },
         loadComponent: () =>
           import('./features/entitlements/entitlements-list.component').then(
             (m) => m.EntitlementsListComponent,
@@ -42,6 +47,7 @@ export const routes: Routes = [
       },
       {
         path: 'deliveries',
+        data: { titleKey: 'deliveries.title' },
         loadComponent: () =>
           import('./features/deliveries/deliveries-list.component').then(
             (m) => m.DeliveriesListComponent,
@@ -49,11 +55,13 @@ export const routes: Routes = [
       },
       {
         path: 'events',
+        data: { titleKey: 'events.title' },
         loadComponent: () =>
           import('./features/events/events-list.component').then((m) => m.EventsListComponent),
       },
       {
         path: 'invoices',
+        data: { titleKey: 'invoices.title' },
         loadComponent: () =>
           import('./features/invoices/invoices-list.component').then(
             (m) => m.InvoicesListComponent,
@@ -70,11 +78,13 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
+        data: { titleKey: 'login.title' },
         loadComponent: () =>
           import('./features/auth/login/login.component').then((m) => m.LoginComponent),
       },
       {
         path: 'privacy',
+        data: { titleKey: 'privacy.title' },
         loadComponent: () =>
           import('./features/privacy/privacy.component').then((m) => m.PrivacyComponent),
       },

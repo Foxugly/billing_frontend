@@ -35,6 +35,8 @@ export class LanguageService {
   private applyLanguage(code: LanguageCode): void {
     this.transloco.setActiveLang(code);
     this._activeLang.set(code);
+    // WCAG 3.1.1 : <html lang> suit la langue choisie (lecteurs d'écran, traduction auto).
+    if (typeof document !== 'undefined') document.documentElement.lang = code;
     try {
       localStorage.setItem(STORAGE_KEY, code);
     } catch {
