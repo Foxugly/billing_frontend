@@ -17,7 +17,7 @@ import { CardModule } from 'primeng/card';
         <ng-template pTemplate="header">
           <div class="card-header">
             <i [class]="icon()" class="auth-brand-icon" aria-hidden="true"></i>
-            <span class="brand fox-brand">{{ title() }}</span>
+            <h1 class="brand fox-brand">{{ title() }}</h1>
           </div>
         </ng-template>
         <ng-content />
