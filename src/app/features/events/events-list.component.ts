@@ -55,7 +55,12 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
           <p-checkbox [(ngModel)]="onlyHandled" [binary]="true" (onChange)="load()" />
           {{ 'events.only_handled' | transloco }}
         </label>
-        <p-button icon="pi pi-search" [text]="true" (onClick)="load()" />
+        <p-button
+          icon="pi pi-search"
+          [text]="true"
+          [ariaLabel]="'common.search' | transloco"
+          (onClick)="load()"
+        />
       </div>
 
       @if (loading()) {

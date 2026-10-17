@@ -208,6 +208,7 @@ function ligneVide(): LigneSaisie {
                     severity="danger"
                     [text]="true"
                     [disabled]="lines().length === 1"
+                    [ariaLabel]="'invoices.remove_line' | transloco"
                     (onClick)="removeLine($index)"
                   />
                 </td>
