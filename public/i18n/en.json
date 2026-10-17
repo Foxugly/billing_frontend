@@ -19,7 +19,9 @@
     "status": "Status",
     "actions": "Actions",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "edit": "Edit",
+    "delete": "Delete"
   },
   "chrome": {
     "nav": {
@@ -43,7 +45,6 @@
       "close": "Close menu"
     },
     "user": {
-      "profile": "Profile",
       "change_password": "Change password",
       "logout": "Log out",
       "menu_aria": "User menu",
@@ -54,7 +55,7 @@
     "version_label": "Version {{version}}",
     "author": "Foxugly",
     "privacy": "Privacy",
-    "rights": "All rights reserved"
+    "rights": "All rights reserved."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -217,24 +218,20 @@
     "load_failed": "Could not load invoices.",
     "create_failed": "Could not create the invoice.",
     "action_failed": "The operation failed.",
-    "export_failed": "Export failed."
+    "export_failed": "Export failed.",
+    "remove_line": "Remove the line"
   },
   "login": {
     "title": "Sign in",
-    "email": "Email",
+    "email": "Email address",
     "password": "Password",
     "remember": "Remember me",
-    "forgot": "Forgot password?",
     "submit": "Sign in",
-    "or": "or",
-    "magic": "Get a sign-in link",
-    "magic_submit": "Send the link",
-    "magic_sent": "Sign-in link sent (demo).",
-    "no_account": "No account yet?",
-    "register": "Create an account",
     "success": "Signed in",
     "staff_only": "Access is restricted to Foxugly operators.",
-    "failed": "Login refused: unknown account, wrong password, or not an operator."
+    "failed": "Login refused: unknown account, wrong password, or not an operator.",
+    "rate_limited": "Too many attempts. Try again in a few minutes.",
+    "error_generic": "Something went wrong. Please try again later."
   },
   "privacy": {
     "title": "Privacy",

@@ -4,6 +4,10 @@
   par `createsuperuser`. Afficher ces parcours donnerait à croire qu'ils existent.
 -->
 <app-auth-card icon="pi pi-sign-in" [title]="'login.title' | transloco">
+  @if (errorKey(); as key) {
+    <p-message severity="error" [text]="key | transloco" styleClass="login-message" />
+  }
+
   <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
     <div class="login-field">
       <label for="login-email">{{ 'login.email' | transloco }}</label>

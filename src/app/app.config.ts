@@ -1,5 +1,5 @@
 import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideTransloco } from '@jsverse/transloco';
@@ -10,6 +10,7 @@ import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 
 // Emerald is the single fleet accent (STANDARD-frontend-layout.md §9). Remap BOTH
 // the `primary` semantic AND the `green` primitive onto Emerald so that
@@ -37,6 +38,7 @@ const BillingAura = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: TitleStrategy, useClass: AppTitleStrategy },
     provideRouter(routes, withComponentInputBinding()),
     // Attache le JWT et retente une fois apres un 401 en rafraichissant.
     provideHttpClient(withInterceptors([authInterceptor])),

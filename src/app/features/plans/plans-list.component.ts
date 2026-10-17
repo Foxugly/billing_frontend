@@ -141,11 +141,17 @@ function planVide(appId: number | null): Partial<BillingPlan> {
                 }
               </td>
               <td class="actions-col">
-                <p-button icon="pi pi-pencil" [text]="true" (onClick)="openForm(p)" />
+                <p-button
+                  icon="pi pi-pencil"
+                  [text]="true"
+                  [ariaLabel]="'common.edit' | transloco"
+                  (onClick)="openForm(p)"
+                />
                 <p-button
                   icon="pi pi-trash"
                   severity="danger"
                   [text]="true"
+                  [ariaLabel]="'common.delete' | transloco"
                   (onClick)="askDelete(p)"
                 />
               </td>
