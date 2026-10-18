@@ -73,6 +73,8 @@
     "empty": "No application is connected to the billing service yet.",
     "slug": "Application",
     "endpoint": "Entitlement endpoint",
+    "return_hosts": "Return",
+    "no_return_hosts": "No return host: checkout refused",
     "plans": "Plans",
     "ping": "Test",
     "rotate": "Rotate secret",

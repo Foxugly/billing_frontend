@@ -51,7 +51,23 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
                 <br />
                 <code>{{ app.slug }}</code>
               </td>
-              <td class="endpoint"><code>{{ app.entitlement_url }}</code></td>
+              <td class="endpoint">
+                <code>{{ app.entitlement_url }}</code>
+                <br />
+                @if (app.return_hosts?.length) {
+                  <small class="return-hosts">
+                    {{ 'apps.return_hosts' | transloco }} : {{ app.return_hosts.join(', ') }}
+                  </small>
+                } @else {
+                  <!-- Sans hôte déclaré, le checkout et le portail de l'app sont
+                       refusés (400 return_hosts_unconfigured). À régler dans l'admin. -->
+                  <p-tag
+                    class="no-return-hosts"
+                    severity="danger"
+                    [value]="'apps.no_return_hosts' | transloco"
+                  />
+                }
+              </td>
               <td>{{ app.plans_count }}</td>
               <td>
                 <p-tag

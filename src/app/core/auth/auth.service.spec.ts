@@ -2,7 +2,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from './auth.service';
 
@@ -190,5 +190,92 @@ describe('AuthService', () => {
     expect(req.request.body).toEqual({ refresh: 'r' });
     req.flush({});
     expect(localStorage.getItem('billing.refresh')).toBeNull();
+  });
+
+  describe('plusieurs onglets', () => {
+    const storageEvent = (key: string | null, newValue: string | null) =>
+      window.dispatchEvent(
+        new StorageEvent('storage', { key, newValue, storageArea: localStorage }),
+      );
+
+    afterEach(() => {
+      Reflect.deleteProperty(navigator, 'locks');
+    });
+
+    it('suit la déconnexion faite dans un autre onglet', () => {
+      localStorage.setItem('billing.access', 'a');
+      localStorage.setItem('billing.refresh', 'r');
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      });
+      const tab = TestBed.inject(AuthService);
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      expect(tab.isLoggedIn()).toBe(true);
+
+      // L'autre onglet a tout effacé.
+      localStorage.clear();
+      storageEvent('billing.refresh', null);
+
+      expect(tab.isLoggedIn()).toBe(false);
+      expect(navigate).toHaveBeenCalledWith(['/login']);
+    });
+
+    it('adopte les jetons rotés par un autre onglet', () => {
+      localStorage.setItem('billing.access', 'a1');
+      localStorage.setItem('billing.refresh', 'r1');
+      storageEvent('billing.access', 'a1');
+      expect(service.accessToken()).toBe('a1');
+
+      localStorage.setItem('billing.access', 'a2');
+      localStorage.setItem('billing.refresh', 'r2');
+      storageEvent('billing.refresh', 'r2');
+
+      expect(service.accessToken()).toBe('a2');
+    });
+
+    it('ignore les clés étrangères à la session', () => {
+      localStorage.setItem('billing.access', 'a');
+      localStorage.setItem('billing.refresh', 'r');
+      storageEvent('billing.refresh', 'r');
+      localStorage.removeItem('billing.refresh');
+
+      storageEvent('theme', 'dark');
+
+      expect(service.accessToken()).toBe('a');
+    });
+
+    it('sérialise le refresh entre onglets avec un Web Lock', async () => {
+      localStorage.setItem('billing.access', 'a');
+      localStorage.setItem('billing.refresh', 'r');
+      const request = vi.fn((_name: string, task: () => Promise<unknown>) => task());
+      Object.defineProperty(navigator, 'locks', { value: { request }, configurable: true });
+
+      const refreshed = service.refresh();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      http
+        .expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/'))
+        .flush({ access: 'b', refresh: 'r2' });
+
+      expect(await refreshed).toBe(true);
+      expect(request).toHaveBeenCalledWith('billing.refresh', expect.any(Function));
+    });
+
+    it("n'use pas un refresh déjà roté par l'onglet qui tenait le verrou", async () => {
+      localStorage.setItem('billing.access', 'a1');
+      localStorage.setItem('billing.refresh', 'r1');
+      // Pendant l'attente du verrou, l'autre onglet a roté r1 en r2.
+      const request = vi.fn(async (_name: string, task: () => Promise<unknown>) => {
+        localStorage.setItem('billing.access', 'a2');
+        localStorage.setItem('billing.refresh', 'r2');
+        return task();
+      });
+      Object.defineProperty(navigator, 'locks', { value: { request }, configurable: true });
+
+      expect(await service.refresh()).toBe(true);
+
+      http.expectNone((r) => r.url.endsWith('/api/v1/auth/token/refresh/'));
+      expect(service.accessToken()).toBe('a2');
+    });
   });
 });

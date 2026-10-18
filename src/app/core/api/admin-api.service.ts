@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import * as Sentry from '@sentry/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { getRuntimeConfig } from '../runtime-config';
@@ -26,6 +27,8 @@ export interface BillingApp {
   base_url: string;
   entitlement_path: string;
   entitlement_url: string;
+  /** Hôtes vers lesquels Stripe peut renvoyer le client (audit M2). Vide = checkout refusé. */
+  return_hosts: string[];
   active: boolean;
   plans_count: number;
   secret_rotated_at: string | null;
@@ -156,35 +159,73 @@ export interface TaxCode {
   description?: string;
 }
 
-/** DRF pagine parfois, parfois non : accepter les deux évite une page vide muette. */
-function unwrap<T>(body: T[] | { results: T[] }): T[] {
-  return Array.isArray(body) ? body : (body?.results ?? []);
-}
+/**
+ * Plafond de lignes chargées pour une liste. Le backend pagine (audit M5) ; la
+ * console suit `next` jusqu'à ce plafond — au-delà, affiner les filtres.
+ */
+export const MAX_LIST_ROWS = 1000;
+const PAGE_SIZE = 200;
+/** Garde-fou contre un serveur qui renverrait des pages vides avec un `next`. */
+export const MAX_LIST_PAGES = Math.ceil(MAX_LIST_ROWS / PAGE_SIZE) + 1;
+/** Seuls paramètres repris de `next` : la requête est reconstruite, jamais suivie telle quelle. */
+const PAGING_PARAMS = ['page', 'cursor'] as const;
+
+type ListBody<T> = T[] | { results: T[]; next: string | null };
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
   private readonly http = inject(HttpClient);
   private readonly base = getRuntimeConfig().apiBaseUrl + '/api/v1/admin';
 
+  /**
+   * GET d'une liste paginée, pages suivies jusqu'à MAX_LIST_ROWS / MAX_LIST_PAGES.
+   * Accepte aussi une liste nue.
+   *
+   * `next` n'est jamais suivi tel quel : l'intercepteur y attacherait le jeton
+   * d'opérateur, et un `next` vers une autre origine le ferait fuiter. On exige
+   * la même origine et le même chemin de liste, puis on RECONSTRUIT la requête
+   * sur `${base}/${path}/` en ne reprenant que `page`/`cursor`.
+   */
+  private async list<T>(
+    path: string,
+    filters: Record<string, string | undefined> = {},
+  ): Promise<T[]> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value);
+    }
+    params.set('page_size', String(PAGE_SIZE));
+    const listUrl = `${this.base}/${path}/`;
+    let url: string | null = `${listUrl}?${params}`;
+    const rows: T[] = [];
+    for (let pages = 0; url && pages < MAX_LIST_PAGES && rows.length < MAX_LIST_ROWS; pages++) {
+      const body: ListBody<T> = await firstValueFrom(this.http.get<ListBody<T>>(url));
+      if (Array.isArray(body)) return body;
+      const results = body?.results ?? [];
+      if (results.length === 0) break;
+      rows.push(...results);
+      url = body?.next ? nextPageUrl(body.next, listUrl, params) : null;
+    }
+    return rows.slice(0, MAX_LIST_ROWS);
+  }
+
   dashboard() {
     return firstValueFrom(this.http.get<Dashboard>(`${this.base}/dashboard/`));
   }
 
-  async apps(): Promise<BillingApp[]> {
-    return unwrap(await firstValueFrom(this.http.get<BillingApp[]>(`${this.base}/apps/`)));
+  apps(): Promise<BillingApp[]> {
+    return this.list<BillingApp>('apps');
   }
 
-  async plans(appSlug?: string): Promise<BillingPlan[]> {
-    const query = appSlug ? `?app=${encodeURIComponent(appSlug)}` : '';
-    return unwrap(await firstValueFrom(this.http.get<BillingPlan[]>(`${this.base}/plans/${query}`)));
+  plans(appSlug?: string): Promise<BillingPlan[]> {
+    return this.list<BillingPlan>('plans', { app: appSlug });
   }
 
-  async events(filters: { type?: string; handled?: boolean } = {}): Promise<StripeEvent[]> {
-    const params = new URLSearchParams();
-    if (filters.type) params.set('type', filters.type);
-    if (filters.handled) params.set('handled', 'true');
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(await firstValueFrom(this.http.get<StripeEvent[]>(`${this.base}/events/${query}`)));
+  events(filters: { type?: string; handled?: boolean } = {}): Promise<StripeEvent[]> {
+    return this.list<StripeEvent>('events', {
+      type: filters.type,
+      handled: filters.handled ? 'true' : undefined,
+    });
   }
 
   replayEvent(id: string) {
@@ -196,8 +237,8 @@ export class AdminApiService {
     );
   }
 
-  async prices(): Promise<StripePrice[]> {
-    return unwrap(await firstValueFrom(this.http.get<StripePrice[]>(`${this.base}/prices/`)));
+  prices(): Promise<StripePrice[]> {
+    return this.list<StripePrice>('prices');
   }
 
   savePlan(plan: Partial<BillingPlan>) {
@@ -210,49 +251,41 @@ export class AdminApiService {
     return firstValueFrom(this.http.delete<void>(`${this.base}/plans/${id}/`));
   }
 
-  async customers(filters: { app?: string; email?: string } = {}): Promise<BillingCustomer[]> {
-    const params = new URLSearchParams();
-    if (filters.app) params.set('app', filters.app);
-    if (filters.email) params.set('email', filters.email);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(
-      await firstValueFrom(this.http.get<BillingCustomer[]>(`${this.base}/customers/${query}`)),
-    );
+  customers(filters: { app?: string; email?: string } = {}): Promise<BillingCustomer[]> {
+    return this.list<BillingCustomer>('customers', filters);
   }
 
-  async entitlements(filters: { app?: string; user?: string } = {}): Promise<Entitlement[]> {
-    const params = new URLSearchParams();
-    if (filters.app) params.set('app', filters.app);
-    if (filters.user) params.set('user', filters.user);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(
-      await firstValueFrom(this.http.get<Entitlement[]>(`${this.base}/entitlements/${query}`)),
-    );
+  entitlements(filters: { app?: string; user?: string } = {}): Promise<Entitlement[]> {
+    return this.list<Entitlement>('entitlements', filters);
   }
 
-  async deliveries(filters: { status?: string; app?: string } = {}): Promise<Delivery[]> {
-    const params = new URLSearchParams();
-    if (filters.status) params.set('status', filters.status);
-    if (filters.app) params.set('app', filters.app);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(await firstValueFrom(this.http.get<Delivery[]>(`${this.base}/deliveries/${query}`)));
+  deliveries(filters: { status?: string; app?: string } = {}): Promise<Delivery[]> {
+    return this.list<Delivery>('deliveries', filters);
   }
 
   replayDelivery(id: string) {
-    return firstValueFrom(this.http.post<{ id: string; status: string }>(`${this.base}/deliveries/${id}/replay/`, {}));
+    return firstValueFrom(
+      this.http.post<{ id: string; status: string }>(`${this.base}/deliveries/${id}/replay/`, {}),
+    );
   }
 
   grantEntitlement(id: number, quotas?: Record<string, number>) {
-    return firstValueFrom(this.http.post<Entitlement>(`${this.base}/entitlements/${id}/grant/`, quotas ? { quotas } : {}));
+    return firstValueFrom(
+      this.http.post<Entitlement>(
+        `${this.base}/entitlements/${id}/grant/`,
+        quotas ? { quotas } : {},
+      ),
+    );
   }
 
   pingApp(id: number) {
-    return firstValueFrom(this.http.post<{ ok: boolean; detail: string }>(`${this.base}/apps/${id}/ping/`, {}));
+    return firstValueFrom(
+      this.http.post<{ ok: boolean; detail: string }>(`${this.base}/apps/${id}/ping/`, {}),
+    );
   }
 
-  async invoices(origin?: string): Promise<Invoice[]> {
-    const query = origin ? `?origin=${encodeURIComponent(origin)}` : '';
-    return unwrap(await firstValueFrom(this.http.get<Invoice[]>(`${this.base}/invoices/${query}`)));
+  invoices(origin?: string): Promise<Invoice[]> {
+    return this.list<Invoice>('invoices', { origin });
   }
 
   createInvoice(draft: InvoiceDraft) {
@@ -290,4 +323,40 @@ export class AdminApiService {
       ),
     );
   }
+}
+
+/**
+ * URL de la page suivante reconstruite sur `listUrl`, ou null si `next` sort de
+ * l'origine ou du chemin de la liste (signalé : c'est une anomalie du serveur).
+ */
+export function nextPageUrl(next: string, listUrl: string, params: URLSearchParams): string | null {
+  const here = globalThis.location?.href;
+  let candidate: URL;
+  let expected: URL;
+  try {
+    expected = new URL(listUrl, here);
+    candidate = new URL(next, expected);
+  } catch {
+    return refuseNext(next);
+  }
+  if (candidate.origin !== expected.origin || !candidate.pathname.startsWith(expected.pathname)) {
+    return refuseNext(next);
+  }
+  const rebuilt = new URLSearchParams(params);
+  let paged = false;
+  for (const key of PAGING_PARAMS) {
+    const value = candidate.searchParams.get(key);
+    if (value) {
+      rebuilt.set(key, value);
+      paged = true;
+    }
+  }
+  return paged ? `${listUrl}?${rebuilt}` : null;
+}
+
+function refuseNext(next: string): null {
+  const message = 'admin-api: lien de pagination hors origine ou hors liste, ignoré';
+  console.error(message, next);
+  Sentry.captureMessage(message, 'warning');
+  return null;
 }

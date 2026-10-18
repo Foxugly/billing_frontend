@@ -73,6 +73,8 @@
     "empty": "Aucune application n'est branchée sur le service de facturation.",
     "slug": "Application",
     "endpoint": "Endpoint de réception",
+    "return_hosts": "Retour",
+    "no_return_hosts": "Aucun hôte de retour : checkout refusé",
     "plans": "Plans",
     "ping": "Tester",
     "rotate": "Changer le secret",

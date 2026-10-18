@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -28,6 +28,10 @@ interface TokenPair {
 
 const ACCESS_KEY = 'billing.access';
 const REFRESH_KEY = 'billing.refresh';
+const SESSION_KEYS: readonly string[] = [ACCESS_KEY, REFRESH_KEY];
+
+/** Verrou Web Locks qui sérialise le refresh entre tous les onglets de l'origine. */
+export const REFRESH_LOCK_NAME = 'billing.refresh';
 
 /**
  * Authentification des opérateurs (JWT simplejwt).
@@ -46,6 +50,12 @@ const REFRESH_KEY = 'billing.refresh';
  * erreur réseau ou un 5xx (OPERATIONS.md §3.25). Le changement de mot de passe
  * révoque tous les refresh côté serveur et renvoie une paire neuve, stockée ici.
  * Le logout met le refresh sur liste noire côté serveur.
+ *
+ * Plusieurs onglets (aligné sur PushIT_frontend SessionService) : l'événement
+ * `storage` resynchronise l'onglet quand un autre rote les jetons, se connecte ou
+ * se déconnecte ; le refresh est sérialisé entre onglets par un Web Lock, et
+ * l'onglet qui attendait le verrou adopte les jetons déjà rotés au lieu de
+ * présenter un refresh que le serveur vient de blacklister.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -62,6 +72,14 @@ export class AuthService {
 
   /** Rafraîchissement en cours, partagé par tous ceux qui en ont besoin. */
   private refreshing: Promise<boolean> | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const onStorage = (event: StorageEvent) => this.onStorageEvent(event);
+      window.addEventListener('storage', onStorage);
+      inject(DestroyRef).onDestroy(() => window.removeEventListener('storage', onStorage));
+    }
+  }
 
   async login(email: string, password: string, remember: boolean): Promise<void> {
     const pair = await firstValueFrom(
@@ -134,9 +152,33 @@ export class AuthService {
     return this.refreshing;
   }
 
-  private async doRefresh(): Promise<boolean> {
+  private doRefresh(): Promise<boolean> {
+    const held = read(REFRESH_KEY);
+    if (!held) return Promise.resolve(false);
+    const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
+    if (!locks?.request) return this.refreshOrAdopt(held);
+    // request() résout avec la valeur ATTENDUE du callback ; le typage DOM dit
+    // Promise<Promise<boolean>>, d'où le passage par unknown.
+    return locks.request(REFRESH_LOCK_NAME, () =>
+      this.refreshOrAdopt(held),
+    ) as unknown as Promise<boolean>;
+  }
+
+  /** Sous le verrou : si un autre onglet a roté entre-temps, adopter ses jetons. */
+  private refreshOrAdopt(held: string): Promise<boolean> {
     const refresh = read(REFRESH_KEY);
-    if (!refresh) return false;
+    if (!refresh) {
+      this.syncFromStorage();
+      return Promise.resolve(false);
+    }
+    if (refresh !== held) {
+      this.syncFromStorage();
+      return Promise.resolve(this._access() !== null);
+    }
+    return this.postRefresh(refresh);
+  }
+
+  private async postRefresh(refresh: string): Promise<boolean> {
     try {
       const pair = await firstValueFrom(
         this.http.post<TokenPair>(`${this.base}/api/v1/auth/token/refresh/`, { refresh }),
@@ -169,19 +211,60 @@ export class AuthService {
     this._access.set(null);
     this._user.set(null);
     for (const store of [localStorage, sessionStorage]) {
-      store.removeItem(ACCESS_KEY);
+      // Le refresh d'abord : c'est la clé que les autres onglets lisent comme « déconnecté ».
       store.removeItem(REFRESH_KEY);
+      store.removeItem(ACCESS_KEY);
     }
   }
 
   private store(pair: TokenPair, remember: boolean): void {
     const store = remember ? localStorage : sessionStorage;
     const other = remember ? sessionStorage : localStorage;
-    store.setItem(ACCESS_KEY, pair.access);
-    store.setItem(REFRESH_KEY, pair.refresh);
+    // Purger l'autre portée AVANT d'écrire, et le refresh en dernier : sur son
+    // événement `storage`, les autres onglets lisent déjà l'accès neuf.
     other.removeItem(ACCESS_KEY);
     other.removeItem(REFRESH_KEY);
+    store.setItem(ACCESS_KEY, pair.access);
+    store.setItem(REFRESH_KEY, pair.refresh);
     this._access.set(pair.access);
+  }
+
+  private onStorageEvent(event: StorageEvent): void {
+    // key === null <=> storage.clear() dans un autre onglet.
+    if (event.key !== null && !SESSION_KEYS.includes(event.key)) return;
+    this.syncFromStorage();
+  }
+
+  /** Relit les jetons écrits par un autre onglet (rotation, connexion, déconnexion). */
+  private syncFromStorage(): void {
+    const refresh = read(REFRESH_KEY);
+    if (!refresh) {
+      const hadSession = this._access() !== null;
+      this._access.set(null);
+      this._user.set(null);
+      if (hadSession) void this.router.navigate(['/login']);
+      return;
+    }
+    const access = read(ACCESS_KEY);
+    this._access.set(access);
+    // Un autre compte s'est connecté dans un autre onglet : recharger le profil.
+    const user = this._user();
+    const tokenUser = access ? userIdOf(access) : null;
+    if (user && tokenUser !== null && tokenUser !== user.id) {
+      void this.loadCurrentUser();
+    }
+  }
+}
+
+/** `user_id` du JWT simplejwt, ou null s'il est illisible. */
+function userIdOf(token: string): number | null {
+  try {
+    const payload = token.split('.')[1];
+    const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const id = Number(json.user_id);
+    return Number.isFinite(id) ? id : null;
+  } catch {
+    return null;
   }
 }
 

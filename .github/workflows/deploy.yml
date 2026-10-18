@@ -43,8 +43,12 @@ jobs:
           cache: "npm"
       - run: npm ci
 
+      # Le SHA est figé dans le bundle (src/app/core/build-info.ts) : la release
+      # Sentry vaut billing-frontend@<sha>, comme PushIT_frontend (audit M9).
       - name: Build (production)
-        run: npm run build
+        env:
+          BUILD_SHA: ${{ github.sha }}
+        run: npm run build -- --define "BILLING_BUILD_SHA='${BUILD_SHA}'"
 
       - name: Vérifier la sortie du build
         run: test -f dist/billing-frontend/browser/index.html
