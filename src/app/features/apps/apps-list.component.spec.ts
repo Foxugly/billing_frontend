@@ -19,6 +19,7 @@ const APP: BillingApp = {
   entitlement_path: '/api/v1/billing/entitlement/',
   entitlement_url: 'https://poker-api.foxugly.invalid/api/v1/billing/entitlement/',
   active: true,
+  return_hosts: ['poker.foxugly.invalid'],
   plans_count: 2,
   secret_rotated_at: null,
   created_at: '2026-07-28T10:00:00Z',
@@ -62,6 +63,21 @@ describe('AppsListComponent', () => {
     fixture = TestBed.createComponent(AppsListComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  it('shows the declared return hosts', () => {
+    fixture.detectChanges();
+    const cell: HTMLElement = fixture.nativeElement.querySelector('.return-hosts');
+    expect(cell.textContent).toContain('poker.foxugly.invalid');
+    expect(fixture.nativeElement.querySelector('.no-return-hosts')).toBeNull();
+  });
+
+  it('flags an app without return hosts: its checkout is refused', async () => {
+    api.apps.mockResolvedValue([{ ...APP, return_hosts: [] }]);
+    await component['load']();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.no-return-hosts')).not.toBeNull();
   });
 
   it('reports a refused ping as an error, not as a success', async () => {

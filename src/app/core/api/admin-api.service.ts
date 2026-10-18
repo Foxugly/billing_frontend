@@ -26,6 +26,8 @@ export interface BillingApp {
   base_url: string;
   entitlement_path: string;
   entitlement_url: string;
+  /** Hôtes vers lesquels Stripe peut renvoyer le client (audit M2). Vide = checkout refusé. */
+  return_hosts: string[];
   active: boolean;
   plans_count: number;
   secret_rotated_at: string | null;
@@ -156,35 +158,58 @@ export interface TaxCode {
   description?: string;
 }
 
-/** DRF pagine parfois, parfois non : accepter les deux évite une page vide muette. */
-function unwrap<T>(body: T[] | { results: T[] }): T[] {
-  return Array.isArray(body) ? body : (body?.results ?? []);
-}
+/**
+ * Plafond de lignes chargées pour une liste. Le backend pagine (audit M5) ; la
+ * console suit `next` jusqu'à ce plafond — au-delà, affiner les filtres.
+ */
+export const MAX_LIST_ROWS = 1000;
+const PAGE_SIZE = 200;
+
+type ListBody<T> = T[] | { results: T[]; next: string | null };
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
   private readonly http = inject(HttpClient);
   private readonly base = getRuntimeConfig().apiBaseUrl + '/api/v1/admin';
 
+  /** GET d'une liste paginée, pages suivies jusqu'à MAX_LIST_ROWS. Accepte aussi une liste nue. */
+  private async list<T>(
+    path: string,
+    filters: Record<string, string | undefined> = {},
+  ): Promise<T[]> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value);
+    }
+    params.set('page_size', String(PAGE_SIZE));
+    let url: string | null = `${this.base}/${path}/?${params}`;
+    const rows: T[] = [];
+    while (url && rows.length < MAX_LIST_ROWS) {
+      const body: ListBody<T> = await firstValueFrom(this.http.get<ListBody<T>>(url));
+      if (Array.isArray(body)) return body;
+      rows.push(...(body?.results ?? []));
+      url = body?.next ?? null;
+    }
+    return rows.slice(0, MAX_LIST_ROWS);
+  }
+
   dashboard() {
     return firstValueFrom(this.http.get<Dashboard>(`${this.base}/dashboard/`));
   }
 
-  async apps(): Promise<BillingApp[]> {
-    return unwrap(await firstValueFrom(this.http.get<BillingApp[]>(`${this.base}/apps/`)));
+  apps(): Promise<BillingApp[]> {
+    return this.list<BillingApp>('apps');
   }
 
-  async plans(appSlug?: string): Promise<BillingPlan[]> {
-    const query = appSlug ? `?app=${encodeURIComponent(appSlug)}` : '';
-    return unwrap(await firstValueFrom(this.http.get<BillingPlan[]>(`${this.base}/plans/${query}`)));
+  plans(appSlug?: string): Promise<BillingPlan[]> {
+    return this.list<BillingPlan>('plans', { app: appSlug });
   }
 
-  async events(filters: { type?: string; handled?: boolean } = {}): Promise<StripeEvent[]> {
-    const params = new URLSearchParams();
-    if (filters.type) params.set('type', filters.type);
-    if (filters.handled) params.set('handled', 'true');
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(await firstValueFrom(this.http.get<StripeEvent[]>(`${this.base}/events/${query}`)));
+  events(filters: { type?: string; handled?: boolean } = {}): Promise<StripeEvent[]> {
+    return this.list<StripeEvent>('events', {
+      type: filters.type,
+      handled: filters.handled ? 'true' : undefined,
+    });
   }
 
   replayEvent(id: string) {
@@ -196,8 +221,8 @@ export class AdminApiService {
     );
   }
 
-  async prices(): Promise<StripePrice[]> {
-    return unwrap(await firstValueFrom(this.http.get<StripePrice[]>(`${this.base}/prices/`)));
+  prices(): Promise<StripePrice[]> {
+    return this.list<StripePrice>('prices');
   }
 
   savePlan(plan: Partial<BillingPlan>) {
@@ -210,49 +235,41 @@ export class AdminApiService {
     return firstValueFrom(this.http.delete<void>(`${this.base}/plans/${id}/`));
   }
 
-  async customers(filters: { app?: string; email?: string } = {}): Promise<BillingCustomer[]> {
-    const params = new URLSearchParams();
-    if (filters.app) params.set('app', filters.app);
-    if (filters.email) params.set('email', filters.email);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(
-      await firstValueFrom(this.http.get<BillingCustomer[]>(`${this.base}/customers/${query}`)),
-    );
+  customers(filters: { app?: string; email?: string } = {}): Promise<BillingCustomer[]> {
+    return this.list<BillingCustomer>('customers', filters);
   }
 
-  async entitlements(filters: { app?: string; user?: string } = {}): Promise<Entitlement[]> {
-    const params = new URLSearchParams();
-    if (filters.app) params.set('app', filters.app);
-    if (filters.user) params.set('user', filters.user);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(
-      await firstValueFrom(this.http.get<Entitlement[]>(`${this.base}/entitlements/${query}`)),
-    );
+  entitlements(filters: { app?: string; user?: string } = {}): Promise<Entitlement[]> {
+    return this.list<Entitlement>('entitlements', filters);
   }
 
-  async deliveries(filters: { status?: string; app?: string } = {}): Promise<Delivery[]> {
-    const params = new URLSearchParams();
-    if (filters.status) params.set('status', filters.status);
-    if (filters.app) params.set('app', filters.app);
-    const query = params.toString() ? `?${params}` : '';
-    return unwrap(await firstValueFrom(this.http.get<Delivery[]>(`${this.base}/deliveries/${query}`)));
+  deliveries(filters: { status?: string; app?: string } = {}): Promise<Delivery[]> {
+    return this.list<Delivery>('deliveries', filters);
   }
 
   replayDelivery(id: string) {
-    return firstValueFrom(this.http.post<{ id: string; status: string }>(`${this.base}/deliveries/${id}/replay/`, {}));
+    return firstValueFrom(
+      this.http.post<{ id: string; status: string }>(`${this.base}/deliveries/${id}/replay/`, {}),
+    );
   }
 
   grantEntitlement(id: number, quotas?: Record<string, number>) {
-    return firstValueFrom(this.http.post<Entitlement>(`${this.base}/entitlements/${id}/grant/`, quotas ? { quotas } : {}));
+    return firstValueFrom(
+      this.http.post<Entitlement>(
+        `${this.base}/entitlements/${id}/grant/`,
+        quotas ? { quotas } : {},
+      ),
+    );
   }
 
   pingApp(id: number) {
-    return firstValueFrom(this.http.post<{ ok: boolean; detail: string }>(`${this.base}/apps/${id}/ping/`, {}));
+    return firstValueFrom(
+      this.http.post<{ ok: boolean; detail: string }>(`${this.base}/apps/${id}/ping/`, {}),
+    );
   }
 
-  async invoices(origin?: string): Promise<Invoice[]> {
-    const query = origin ? `?origin=${encodeURIComponent(origin)}` : '';
-    return unwrap(await firstValueFrom(this.http.get<Invoice[]>(`${this.base}/invoices/${query}`)));
+  invoices(origin?: string): Promise<Invoice[]> {
+    return this.list<Invoice>('invoices', { origin });
   }
 
   createInvoice(draft: InvoiceDraft) {

@@ -45,6 +45,7 @@ const APP: BillingApp = {
   base_url: 'https://poker-api.foxugly.com',
   entitlement_path: '/api/v1/billing/entitlement/',
   entitlement_url: 'https://poker-api.foxugly.com/api/v1/billing/entitlement/',
+  return_hosts: ['poker.foxugly.com'],
   active: true,
   plans_count: 2,
   secret_rotated_at: null,
