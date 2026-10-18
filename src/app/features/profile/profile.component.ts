@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -8,13 +9,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
-import { AuthService, CurrentUser, passwordChangeUrl } from '../../core/auth/auth.service';
+import { AuthService, CurrentUser } from '../../core/auth/auth.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 /**
  * Profil de l'opérateur connecté : email en lecture seule (c'est l'identifiant de
- * connexion), prénom et nom modifiables. Le mot de passe se change dans le Django
- * admin — le backend n'a pas d'endpoint dédié. Pas de suppression de compte ni de
+ * connexion), prénom et nom modifiables, lien vers /change-password. Pas de suppression de compte ni de
  * préférence de langue : les comptes opérateurs se gèrent par `createsuperuser`.
  */
 @Component({
@@ -22,6 +22,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     TranslocoPipe,
     ButtonModule,
     InputTextModule,
@@ -92,8 +93,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
         </form>
 
         <h2 class="profile__subtitle">{{ 'profile.security' | transloco }}</h2>
-        <p class="profile__hint">{{ 'profile.password_hint' | transloco }}</p>
-        <a class="profile__link" [href]="passwordUrl" target="_blank" rel="noopener">
+        <a class="profile__link" routerLink="/change-password">
           <i class="pi pi-key" aria-hidden="true"></i>
           <span>{{ 'chrome.user.change_password' | transloco }}</span>
         </a>
@@ -148,7 +148,6 @@ export class ProfileComponent {
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
 
-  protected readonly passwordUrl = passwordChangeUrl();
   protected readonly user = signal<CurrentUser | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);

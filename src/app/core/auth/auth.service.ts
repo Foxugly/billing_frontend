@@ -21,14 +21,6 @@ export interface ProfileUpdate {
   lastName: string;
 }
 
-/**
- * Le backend n'expose pas de changement de mot de passe : les opérateurs passent
- * par celui du Django admin (comptes staff, session admin distincte du JWT).
- */
-export function passwordChangeUrl(): string {
-  return `${getRuntimeConfig().apiBaseUrl}/admin/password_change/`;
-}
-
 interface TokenPair {
   access: string;
   refresh: string;
@@ -97,6 +89,16 @@ export class AuthService {
     );
     this._user.set(user);
     return user;
+  }
+
+  /** Erreurs 400 porteuses d'un `code` : current_password_invalid, password_unchanged, password_invalid. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.base}/api/v1/auth/password/change/`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    );
   }
 
   /** Rafraîchit l'accès. Renvoie false si la session est définitivement perdue. */

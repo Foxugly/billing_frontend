@@ -124,4 +124,14 @@ describe('AuthService', () => {
     await expect(loading).rejects.toBeTruthy();
     expect(localStorage.getItem('billing.access')).toBe('a');
   });
+
+  it('poste current_password et new_password au changement de mot de passe', async () => {
+    const changing = service.changePassword('ancien', 'nouveau');
+    const req = http.expectOne((r) => r.url.endsWith('/api/v1/auth/password/change/'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ current_password: 'ancien', new_password: 'nouveau' });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
+    await changing;
+  });
 });

@@ -242,9 +242,25 @@
     "last_name": "Last name",
     "saved": "Profile saved",
     "security": "Security",
-    "password_hint": "The password is changed in the Django administration, which opens in a new tab; you may be asked to sign in there.",
     "errors": {
       "invalid": "Some values are invalid. Check the first and last name (150 characters maximum).",
+      "rate_limited": "Too many attempts. Try again in a few minutes.",
+      "generic": "Something went wrong. Try again later."
+    }
+  },
+  "change_password": {
+    "title": "Change password",
+    "back": "Back to profile",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Change password",
+    "success": "Password changed",
+    "errors": {
+      "mismatch": "The two new passwords do not match.",
+      "current_password_invalid": "The current password is incorrect.",
+      "password_unchanged": "The new password must be different from the current one.",
+      "password_invalid": "This password is not accepted:",
       "rate_limited": "Too many attempts. Try again in a few minutes.",
       "generic": "Something went wrong. Try again later."
     }

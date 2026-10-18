@@ -75,7 +75,7 @@ describe('ProfileComponent', () => {
       '.profile__link',
     )!;
 
-    expect(link.href).toContain('/admin/password_change/');
+    expect(link.getAttribute('href')).toBe('/change-password');
   });
 
   it('saves trimmed names and confirms with a toast', async () => {

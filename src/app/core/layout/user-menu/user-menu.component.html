@@ -19,14 +19,7 @@
           <span>{{ 'chrome.user.profile' | transloco }}</span>
         </a>
 
-        <a
-          class="user-menu__item"
-          role="menuitem"
-          [href]="passwordUrl"
-          target="_blank"
-          rel="noopener"
-          (click)="close()"
-        >
+        <a class="user-menu__item" role="menuitem" routerLink="/change-password" (click)="close()">
           <i class="pi pi-key user-menu__item-icon" aria-hidden="true"></i>
           <span>{{ 'chrome.user.change_password' | transloco }}</span>
         </a>
