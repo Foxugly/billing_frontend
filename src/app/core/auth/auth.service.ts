@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
@@ -38,7 +38,14 @@ const REFRESH_KEY = 'billing.refresh';
  * Le refresh est **roté** par le backend : chaque rafraîchissement renvoie un
  * nouveau refresh et met l'ancien sur liste noire. Ne pas persister le jeton roté
  * éjecterait l'opérateur à la première rotation — piège déjà rencontré ailleurs
- * dans la flotte.
+ * dans la flotte. Pour la même raison, un seul rafraîchissement à la fois : deux
+ * requêtes en 401 simultanées présenteraient le même refresh, et la seconde
+ * serait refusée (jeton déjà roté).
+ *
+ * La session n'est effacée que sur un **401/403** du refresh, jamais sur une
+ * erreur réseau ou un 5xx (OPERATIONS.md §3.25). Le changement de mot de passe
+ * révoque tous les refresh côté serveur et renvoie une paire neuve, stockée ici.
+ * Le logout met le refresh sur liste noire côté serveur.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -52,6 +59,9 @@ export class AuthService {
   readonly accessToken = this._access.asReadonly();
   readonly currentUser = this._user.asReadonly();
   readonly isLoggedIn = computed(() => this._access() !== null);
+
+  /** Rafraîchissement en cours, partagé par tous ceux qui en ont besoin. */
+  private refreshing: Promise<boolean> | null = null;
 
   async login(email: string, password: string, remember: boolean): Promise<void> {
     const pair = await firstValueFrom(
@@ -67,8 +77,9 @@ export class AuthService {
       const user = await firstValueFrom(this.http.get<CurrentUser>(`${this.base}/api/v1/auth/me/`));
       this._user.set(user);
       return user;
-    } catch {
-      this.clear();
+    } catch (err) {
+      // Une panne réseau ou un 5xx ne déconnecte pas : seul un refus le fait.
+      if (isAuthRefusal(err)) this.clear();
       return null;
     }
   }
@@ -91,18 +102,39 @@ export class AuthService {
     return user;
   }
 
-  /** Erreurs 400 porteuses d'un `code` : current_password_invalid, password_unchanged, password_invalid. */
+  /**
+   * Erreurs 400 porteuses d'un `code` : current_password_invalid, password_unchanged, password_invalid.
+   *
+   * Le backend révoque tous les refresh existants et renvoie une paire neuve :
+   * elle DOIT être stockée, sinon l'opérateur est éjecté à l'expiration de l'accès.
+   */
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    await firstValueFrom(
-      this.http.post<void>(`${this.base}/api/v1/auth/password/change/`, {
+    const pair = await firstValueFrom(
+      this.http.post<TokenPair | null>(`${this.base}/api/v1/auth/password/change/`, {
         current_password: currentPassword,
         new_password: newPassword,
       }),
     );
+    if (pair?.access && pair?.refresh) {
+      this.store(pair, isRemembered());
+    }
   }
 
-  /** Rafraîchit l'accès. Renvoie false si la session est définitivement perdue. */
-  async refresh(): Promise<boolean> {
+  /**
+   * Rafraîchit l'accès. Renvoie false si la session est définitivement perdue
+   * (refresh absent, ou refusé par un 401/403). Une erreur réseau ou un 5xx est
+   * propagée, session conservée : l'opérateur réessaiera.
+   */
+  refresh(): Promise<boolean> {
+    if (!this.refreshing) {
+      this.refreshing = this.doRefresh().finally(() => {
+        this.refreshing = null;
+      });
+    }
+    return this.refreshing;
+  }
+
+  private async doRefresh(): Promise<boolean> {
     const refresh = read(REFRESH_KEY);
     if (!refresh) return false;
     try {
@@ -112,14 +144,24 @@ export class AuthService {
       // Le refresh roté DOIT être persisté : l'ancien vient d'être blacklisté.
       this.store({ access: pair.access, refresh: pair.refresh ?? refresh }, isRemembered());
       return true;
-    } catch {
-      this.clear();
-      return false;
+    } catch (err) {
+      if (isAuthRefusal(err)) {
+        this.clear();
+        return false;
+      }
+      throw err;
     }
   }
 
+  /** Déconnexion : le refresh est mis sur liste noire côté serveur (au mieux). */
   logout(): void {
+    const refresh = read(REFRESH_KEY);
     this.clear();
+    if (refresh) {
+      this.http
+        .post(`${this.base}/api/v1/auth/token/blacklist/`, { refresh })
+        .subscribe({ error: () => undefined });
+    }
     void this.router.navigate(['/login']);
   }
 
@@ -149,6 +191,10 @@ function read(key: string): string | null {
   } catch {
     return null;
   }
+}
+
+function isAuthRefusal(err: unknown): boolean {
+  return err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403);
 }
 
 function isRemembered(): boolean {
