@@ -1,7 +1,7 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 import { getRuntimeConfig } from '../runtime-config';
 
@@ -21,41 +21,60 @@ export interface ProfileUpdate {
   lastName: string;
 }
 
-interface TokenPair {
+/** Réponse d'authentification en mode cookie : le refresh n'est jamais dans le corps. */
+interface AccessResponse {
   access: string;
-  refresh: string;
 }
 
-const ACCESS_KEY = 'billing.access';
-const REFRESH_KEY = 'billing.refresh';
-const SESSION_KEYS: readonly string[] = [ACCESS_KEY, REFRESH_KEY];
+/**
+ * Indice non secret « une session existe », dans le localStorage. Il dit à un
+ * nouveau chargement s'il faut tenter la restauration silencieuse, et ses
+ * événements `storage` disent aux autres onglets « session changée » (nouvelle
+ * valeur) ou « déconnecté » (supprimé). Il ne porte **jamais** de jeton.
+ */
+export const SESSION_HINT_KEY = 'billing.session';
+
+/** Clés d'avant le cookie : lues une fois pour la migration, puis effacées. */
+const LEGACY_ACCESS_KEY = 'billing.access';
+const LEGACY_REFRESH_KEY = 'billing.refresh';
 
 /** Verrou Web Locks qui sérialise le refresh entre tous les onglets de l'origine. */
 export const REFRESH_LOCK_NAME = 'billing.refresh';
 
+/** Borne de la restauration au démarrage : une API muette ne bloque pas la console. */
+const RESTORE_TIMEOUT_MS = 10_000;
+
 /**
- * Authentification des opérateurs (JWT simplejwt).
+ * Opt-in au cookie HttpOnly du backend (billing_server `accounts/refresh_cookie.py`),
+ * envoyé sur les appels d'authentification SEULEMENT : le refresh est alors posé
+ * dans un cookie `HttpOnly; Secure; SameSite=Lax` limité à `/api/v1/auth/` sur
+ * billing-api, et retiré du corps JSON. `withCredentials` laisse le navigateur
+ * stocker / envoyer ce cookie sur ces appels cross-origin.
+ */
+export function cookieAuthOptions(): { headers: HttpHeaders; withCredentials: true } {
+  return { headers: new HttpHeaders({ 'X-Auth-Mode': 'cookie' }), withCredentials: true };
+}
+
+/**
+ * Authentification des opérateurs (JWT simplejwt), design du pilote PushIT
+ * (PushIT_frontend #92).
  *
  * Ce service n'a ni inscription ni mot de passe oublié : le backend refuse
  * d'ailleurs tout compte non-staff. Les comptes sont créés par `createsuperuser`.
  *
- * Le refresh est **roté** par le backend : chaque rafraîchissement renvoie un
- * nouveau refresh et met l'ancien sur liste noire. Ne pas persister le jeton roté
- * éjecterait l'opérateur à la première rotation — piège déjà rencontré ailleurs
- * dans la flotte. Pour la même raison, un seul rafraîchissement à la fois : deux
- * requêtes en 401 simultanées présenteraient le même refresh, et la seconde
- * serait refusée (jeton déjà roté).
- *
- * La session n'est effacée que sur un **401/403** du refresh, jamais sur une
- * erreur réseau ou un 5xx (OPERATIONS.md §3.25). Le changement de mot de passe
- * révoque tous les refresh côté serveur et renvoie une paire neuve, stockée ici.
- * Le logout met le refresh sur liste noire côté serveur.
- *
- * Plusieurs onglets (aligné sur PushIT_frontend SessionService) : l'événement
- * `storage` resynchronise l'onglet quand un autre rote les jetons, se connecte ou
- * se déconnecte ; le refresh est sérialisé entre onglets par un Web Lock, et
- * l'onglet qui attendait le verrou adopte les jetons déjà rotés au lieu de
- * présenter un refresh que le serveur vient de blacklister.
+ * - Le **refresh** vit dans un cookie HttpOnly : aucun script (ni XSS) ne le lit.
+ *   Le backend le **rote** à chaque refresh et met l'ancien sur liste noire.
+ * - L'**accès** vit en mémoire seulement. Au démarrage, `restore()` (initialiseur
+ *   d'application) le récupère via le cookie, puis charge `/me/`.
+ * - « Se souvenir de moi » part en `remember_me` : décoché, le backend pose un
+ *   cookie de session.
+ * - La session n'est effacée que sur un **401/403** du refresh, jamais sur une
+ *   erreur réseau ou un 5xx (OPERATIONS.md §3.25).
+ * - Plusieurs onglets : le refresh est sérialisé par un Web Lock (deux onglets ne
+ *   présentent jamais le même cookie roté), et l'indice `billing.session` signale
+ *   « session changée » ou « déconnecté » — jamais un jeton.
+ * - Migration : un refresh resté en local/sessionStorage (ancienne console) est
+ *   présenté **une fois** dans le corps avec l'opt-in cookie, puis effacé.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -63,7 +82,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly base = getRuntimeConfig().apiBaseUrl;
 
-  private readonly _access = signal<string | null>(read(ACCESS_KEY));
+  private readonly _access = signal<string | null>(null);
   private readonly _user = signal<CurrentUser | null>(null);
 
   readonly accessToken = this._access.asReadonly();
@@ -82,10 +101,16 @@ export class AuthService {
   }
 
   async login(email: string, password: string, remember: boolean): Promise<void> {
-    const pair = await firstValueFrom(
-      this.http.post<TokenPair>(`${this.base}/api/v1/auth/token/`, { email, password }),
+    const response = await firstValueFrom(
+      this.http.post<AccessResponse>(
+        `${this.base}/api/v1/auth/token/`,
+        { email, password, remember_me: remember },
+        cookieAuthOptions(),
+      ),
     );
-    this.store(pair, remember);
+    this._access.set(response.access);
+    dropLegacyStorage();
+    announceSessionChange();
     await this.loadCurrentUser();
   }
 
@@ -99,6 +124,35 @@ export class AuthService {
       // Une panne réseau ou un 5xx ne déconnecte pas : seul un refus le fait.
       if (isAuthRefusal(err)) this.clear();
       return null;
+    }
+  }
+
+  /**
+   * Restauration silencieuse (initialiseur d'application, et quand un autre
+   * onglet change la session) : refresh par le cookie, puis `/me/`. Ne rejette
+   * jamais. Un refus (401/403) termine la session ; une erreur réseau ou un 5xx
+   * garde l'indice, pour que le prochain chargement réessaie.
+   */
+  async restore(): Promise<void> {
+    if (!hasSession(this._access())) return;
+    try {
+      const ok = await withTimeout(this.refresh(), RESTORE_TIMEOUT_MS);
+      if (!ok) return;
+      const user = await firstValueFrom(
+        this.http
+          .get<CurrentUser>(`${this.base}/api/v1/auth/me/`)
+          .pipe(timeout(RESTORE_TIMEOUT_MS)),
+      );
+      this._user.set(user);
+      // Migré depuis un jeton hérité : commencer à annoncer la session.
+      if (readHint() === null) announceSessionChange();
+    } catch (err) {
+      if (isAuthRefusal(err)) {
+        this.clear();
+      } else {
+        // Indice conservé, mais affiché déconnecté jusqu'au prochain essai.
+        this._access.set(null);
+      }
     }
   }
 
@@ -123,25 +177,27 @@ export class AuthService {
   /**
    * Erreurs 400 porteuses d'un `code` : current_password_invalid, password_unchanged, password_invalid.
    *
-   * Le backend révoque tous les refresh existants et renvoie une paire neuve :
-   * elle DOIT être stockée, sinon l'opérateur est éjecté à l'expiration de l'accès.
+   * Le backend révoque tous les refresh existants, repose le cookie et renvoie un
+   * accès neuf : il DOIT être adopté, sinon l'opérateur est éjecté à l'expiration.
    */
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    const pair = await firstValueFrom(
-      this.http.post<TokenPair | null>(`${this.base}/api/v1/auth/password/change/`, {
-        current_password: currentPassword,
-        new_password: newPassword,
-      }),
+    const response = await firstValueFrom(
+      this.http.post<AccessResponse | null>(
+        `${this.base}/api/v1/auth/password/change/`,
+        { current_password: currentPassword, new_password: newPassword },
+        cookieAuthOptions(),
+      ),
     );
-    if (pair?.access && pair?.refresh) {
-      this.store(pair, isRemembered());
+    if (response?.access) {
+      this._access.set(response.access);
+      announceSessionChange();
     }
   }
 
   /**
-   * Rafraîchit l'accès. Renvoie false si la session est définitivement perdue
-   * (refresh absent, ou refusé par un 401/403). Une erreur réseau ou un 5xx est
-   * propagée, session conservée : l'opérateur réessaiera.
+   * Rafraîchit l'accès par le cookie. Renvoie false si la session est
+   * définitivement perdue (aucune session, ou refus 401/403). Une erreur réseau
+   * ou un 5xx est propagée, session conservée : l'opérateur réessaiera.
    */
   refresh(): Promise<boolean> {
     if (!this.refreshing) {
@@ -153,38 +209,31 @@ export class AuthService {
   }
 
   private doRefresh(): Promise<boolean> {
-    const held = read(REFRESH_KEY);
-    if (!held) return Promise.resolve(false);
+    if (!hasSession(this._access())) return Promise.resolve(false);
     const locks = typeof navigator !== 'undefined' ? navigator.locks : undefined;
-    if (!locks?.request) return this.refreshOrAdopt(held);
+    if (!locks?.request) return this.postRefresh();
+    // Le navigateur envoie le cookie courant au départ de la requête : l'onglet
+    // qui attendait le verrou présente le jeton que l'autre vient de roter.
     // request() résout avec la valeur ATTENDUE du callback ; le typage DOM dit
     // Promise<Promise<boolean>>, d'où le passage par unknown.
     return locks.request(REFRESH_LOCK_NAME, () =>
-      this.refreshOrAdopt(held),
+      this.postRefresh(),
     ) as unknown as Promise<boolean>;
   }
 
-  /** Sous le verrou : si un autre onglet a roté entre-temps, adopter ses jetons. */
-  private refreshOrAdopt(held: string): Promise<boolean> {
-    const refresh = read(REFRESH_KEY);
-    if (!refresh) {
-      this.syncFromStorage();
-      return Promise.resolve(false);
-    }
-    if (refresh !== held) {
-      this.syncFromStorage();
-      return Promise.resolve(this._access() !== null);
-    }
-    return this.postRefresh(refresh);
-  }
-
-  private async postRefresh(refresh: string): Promise<boolean> {
+  private async postRefresh(): Promise<boolean> {
+    // Lu sous le verrou : un autre onglet a peut-être déjà migré ce jeton.
+    const legacy = readLegacyRefresh();
     try {
-      const pair = await firstValueFrom(
-        this.http.post<TokenPair>(`${this.base}/api/v1/auth/token/refresh/`, { refresh }),
+      const response = await firstValueFrom(
+        this.http.post<AccessResponse>(
+          `${this.base}/api/v1/auth/token/refresh/`,
+          legacy ? { refresh: legacy } : {},
+          cookieAuthOptions(),
+        ),
       );
-      // Le refresh roté DOIT être persisté : l'ancien vient d'être blacklisté.
-      this.store({ access: pair.access, refresh: pair.refresh ?? refresh }, isRemembered());
+      if (legacy) dropLegacyStorage();
+      this._access.set(response.access);
       return true;
     } catch (err) {
       if (isAuthRefusal(err)) {
@@ -195,84 +244,84 @@ export class AuthService {
     }
   }
 
-  /** Déconnexion : le refresh est mis sur liste noire côté serveur (au mieux). */
+  /**
+   * Déconnexion : le backend met le cookie sur liste noire et l'efface (au mieux).
+   * Sans Bearer : un accès expiré ne doit pas transformer le logout en 401.
+   */
   logout(): void {
-    const refresh = read(REFRESH_KEY);
     this.clear();
-    if (refresh) {
-      this.http
-        .post(`${this.base}/api/v1/auth/token/blacklist/`, { refresh })
-        .subscribe({ error: () => undefined });
-    }
+    this.http
+      .post(`${this.base}/api/v1/auth/token/blacklist/`, {}, cookieAuthOptions())
+      .subscribe({ error: () => undefined });
     void this.router.navigate(['/login']);
   }
 
+  /** Efface la session locale (mémoire + indice) ; les autres onglets suivent. */
   clear(): void {
     this._access.set(null);
     this._user.set(null);
-    for (const store of [localStorage, sessionStorage]) {
-      // Le refresh d'abord : c'est la clé que les autres onglets lisent comme « déconnecté ».
-      store.removeItem(REFRESH_KEY);
-      store.removeItem(ACCESS_KEY);
+    try {
+      localStorage.removeItem(SESSION_HINT_KEY);
+    } catch {
+      /* stockage indisponible : rien à effacer */
     }
-  }
-
-  private store(pair: TokenPair, remember: boolean): void {
-    const store = remember ? localStorage : sessionStorage;
-    const other = remember ? sessionStorage : localStorage;
-    // Purger l'autre portée AVANT d'écrire, et le refresh en dernier : sur son
-    // événement `storage`, les autres onglets lisent déjà l'accès neuf.
-    other.removeItem(ACCESS_KEY);
-    other.removeItem(REFRESH_KEY);
-    store.setItem(ACCESS_KEY, pair.access);
-    store.setItem(REFRESH_KEY, pair.refresh);
-    this._access.set(pair.access);
+    dropLegacyStorage();
   }
 
   private onStorageEvent(event: StorageEvent): void {
     // key === null <=> storage.clear() dans un autre onglet.
-    if (event.key !== null && !SESSION_KEYS.includes(event.key)) return;
-    this.syncFromStorage();
-  }
-
-  /** Relit les jetons écrits par un autre onglet (rotation, connexion, déconnexion). */
-  private syncFromStorage(): void {
-    const refresh = read(REFRESH_KEY);
-    if (!refresh) {
+    if (event.key !== null && event.key !== SESSION_HINT_KEY) return;
+    if (event.newValue === null) {
+      // Déconnecté ailleurs (le cookie est effacé aussi) : abandonner notre copie.
       const hadSession = this._access() !== null;
       this._access.set(null);
       this._user.set(null);
       if (hadSession) void this.router.navigate(['/login']);
       return;
     }
-    const access = read(ACCESS_KEY);
-    this._access.set(access);
-    // Un autre compte s'est connecté dans un autre onglet : recharger le profil.
-    const user = this._user();
-    const tokenUser = access ? userIdOf(access) : null;
-    if (user && tokenUser !== null && tokenUser !== user.id) {
-      void this.loadCurrentUser();
+    // Connexion ou changement de mot de passe ailleurs : le cookie partagé porte
+    // déjà la nouvelle session, la reprendre (accès + profil).
+    void this.restore();
+  }
+}
+
+function hasSession(access: string | null): boolean {
+  return access !== null || readHint() !== null || readLegacyRefresh() !== null;
+}
+
+function readHint(): string | null {
+  try {
+    return localStorage.getItem(SESSION_HINT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Nouvelle valeur d'indice -> un événement `storage` dans chaque autre onglet. */
+function announceSessionChange(): void {
+  try {
+    localStorage.setItem(SESSION_HINT_KEY, String(Date.now()));
+  } catch {
+    /* stockage indisponible : pas de synchronisation entre onglets */
+  }
+}
+
+function readLegacyRefresh(): string | null {
+  try {
+    return localStorage.getItem(LEGACY_REFRESH_KEY) ?? sessionStorage.getItem(LEGACY_REFRESH_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function dropLegacyStorage(): void {
+  try {
+    for (const store of [localStorage, sessionStorage]) {
+      store.removeItem(LEGACY_REFRESH_KEY);
+      store.removeItem(LEGACY_ACCESS_KEY);
     }
-  }
-}
-
-/** `user_id` du JWT simplejwt, ou null s'il est illisible. */
-function userIdOf(token: string): number | null {
-  try {
-    const payload = token.split('.')[1];
-    const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    const id = Number(json.user_id);
-    return Number.isFinite(id) ? id : null;
   } catch {
-    return null;
-  }
-}
-
-function read(key: string): string | null {
-  try {
-    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
-  } catch {
-    return null;
+    /* stockage indisponible : rien à effacer */
   }
 }
 
@@ -280,10 +329,10 @@ function isAuthRefusal(err: unknown): boolean {
   return err instanceof HttpErrorResponse && (err.status === 401 || err.status === 403);
 }
 
-function isRemembered(): boolean {
-  try {
-    return localStorage.getItem(ACCESS_KEY) !== null;
-  } catch {
-    return false;
-  }
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const expired = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Restauration de session expirée')), ms);
+  });
+  return Promise.race([promise, expired]).finally(() => clearTimeout(timer));
 }
