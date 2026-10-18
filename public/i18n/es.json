@@ -45,6 +45,7 @@
       "close": "Cerrar menú"
     },
     "user": {
+      "profile": "Perfil",
       "change_password": "Cambiar contraseña",
       "logout": "Cerrar sesión",
       "menu_aria": "Menú de usuario",
@@ -232,6 +233,37 @@
     "failed": "Acceso rechazado: cuenta desconocida, contraseña incorrecta o cuenta no operadora.",
     "rate_limited": "Demasiados intentos. Inténtelo de nuevo dentro de unos minutos.",
     "error_generic": "Se ha producido un error. Inténtelo de nuevo más tarde."
+  },
+  "profile": {
+    "title": "Perfil",
+    "email": "Correo electrónico",
+    "email_readonly": "Su correo electrónico es su identificador de acceso: no se puede modificar aquí.",
+    "first_name": "Nombre",
+    "last_name": "Apellidos",
+    "saved": "Perfil guardado",
+    "security": "Seguridad",
+    "errors": {
+      "invalid": "Algunos valores no son válidos. Revise el nombre y los apellidos (150 caracteres como máximo).",
+      "rate_limited": "Demasiados intentos. Vuelva a intentarlo en unos minutos.",
+      "generic": "Se ha producido un error. Vuelva a intentarlo más tarde."
+    }
+  },
+  "change_password": {
+    "title": "Cambiar contraseña",
+    "back": "Volver al perfil",
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "confirm": "Confirmar la nueva contraseña",
+    "submit": "Cambiar contraseña",
+    "success": "Contraseña cambiada",
+    "errors": {
+      "mismatch": "Las dos contraseñas nuevas no coinciden.",
+      "current_password_invalid": "La contraseña actual es incorrecta.",
+      "password_unchanged": "La nueva contraseña debe ser distinta de la actual.",
+      "password_invalid": "Esta contraseña no se acepta:",
+      "rate_limited": "Demasiados intentos. Inténtelo de nuevo dentro de unos minutos.",
+      "generic": "Se ha producido un error. Vuelva a intentarlo más tarde."
+    }
   },
   "privacy": {
     "title": "Privacy",

@@ -45,6 +45,7 @@
       "close": "Chiudi menu"
     },
     "user": {
+      "profile": "Profilo",
       "change_password": "Cambia password",
       "logout": "Esci",
       "menu_aria": "Menu utente",
@@ -232,6 +233,37 @@
     "failed": "Accesso rifiutato: account sconosciuto, password errata o account non operatore.",
     "rate_limited": "Troppi tentativi. Riprova tra qualche minuto.",
     "error_generic": "Si è verificato un errore. Riprova più tardi."
+  },
+  "profile": {
+    "title": "Profilo",
+    "email": "Indirizzo e-mail",
+    "email_readonly": "L'indirizzo e-mail è il tuo identificativo di accesso: non può essere modificato qui.",
+    "first_name": "Nome",
+    "last_name": "Cognome",
+    "saved": "Profilo salvato",
+    "security": "Sicurezza",
+    "errors": {
+      "invalid": "Alcuni valori non sono validi. Controlla nome e cognome (massimo 150 caratteri).",
+      "rate_limited": "Troppi tentativi. Riprova tra qualche minuto.",
+      "generic": "Si è verificato un errore. Riprova più tardi."
+    }
+  },
+  "change_password": {
+    "title": "Cambia password",
+    "back": "Torna al profilo",
+    "current": "Password attuale",
+    "new": "Nuova password",
+    "confirm": "Conferma la nuova password",
+    "submit": "Cambia password",
+    "success": "Password modificata",
+    "errors": {
+      "mismatch": "Le due nuove password non coincidono.",
+      "current_password_invalid": "La password attuale non è corretta.",
+      "password_unchanged": "La nuova password deve essere diversa da quella attuale.",
+      "password_invalid": "Questa password non è accettata:",
+      "rate_limited": "Troppi tentativi. Riprova tra qualche minuto.",
+      "generic": "Si è verificato un errore. Riprova più tardi."
+    }
   },
   "privacy": {
     "title": "Privacy",

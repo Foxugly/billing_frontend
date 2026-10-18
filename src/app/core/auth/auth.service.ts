@@ -8,9 +8,17 @@ import { getRuntimeConfig } from '../runtime-config';
 export interface CurrentUser {
   id: number;
   email: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
   isStaff: boolean;
   isSuperuser: boolean;
+}
+
+/** Champs modifiables depuis la page Profil (l'email est l'identifiant : lecture seule). */
+export interface ProfileUpdate {
+  firstName: string;
+  lastName: string;
 }
 
 interface TokenPair {
@@ -63,6 +71,34 @@ export class AuthService {
       this.clear();
       return null;
     }
+  }
+
+  /**
+   * Relit le profil pour la page Profil. Contrairement à `loadCurrentUser`, une
+   * erreur est propagée (et la session conservée) : la page l'affiche.
+   */
+  async fetchProfile(): Promise<CurrentUser> {
+    const user = await firstValueFrom(this.http.get<CurrentUser>(`${this.base}/api/v1/auth/me/`));
+    this._user.set(user);
+    return user;
+  }
+
+  async updateProfile(changes: ProfileUpdate): Promise<CurrentUser> {
+    const user = await firstValueFrom(
+      this.http.patch<CurrentUser>(`${this.base}/api/v1/auth/me/`, changes),
+    );
+    this._user.set(user);
+    return user;
+  }
+
+  /** Erreurs 400 porteuses d'un `code` : current_password_invalid, password_unchanged, password_invalid. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.base}/api/v1/auth/password/change/`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    );
   }
 
   /** Rafraîchit l'accès. Renvoie false si la session est définitivement perdue. */

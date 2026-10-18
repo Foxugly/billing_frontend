@@ -45,6 +45,7 @@
       "close": "Close menu"
     },
     "user": {
+      "profile": "Profile",
       "change_password": "Change password",
       "logout": "Log out",
       "menu_aria": "User menu",
@@ -232,6 +233,37 @@
     "failed": "Login refused: unknown account, wrong password, or not an operator.",
     "rate_limited": "Too many attempts. Try again in a few minutes.",
     "error_generic": "Something went wrong. Please try again later."
+  },
+  "profile": {
+    "title": "Profile",
+    "email": "Email address",
+    "email_readonly": "Your email address is your sign-in identifier: it cannot be changed here.",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "saved": "Profile saved",
+    "security": "Security",
+    "errors": {
+      "invalid": "Some values are invalid. Check the first and last name (150 characters maximum).",
+      "rate_limited": "Too many attempts. Try again in a few minutes.",
+      "generic": "Something went wrong. Try again later."
+    }
+  },
+  "change_password": {
+    "title": "Change password",
+    "back": "Back to profile",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Change password",
+    "success": "Password changed",
+    "errors": {
+      "mismatch": "The two new passwords do not match.",
+      "current_password_invalid": "The current password is incorrect.",
+      "password_unchanged": "The new password must be different from the current one.",
+      "password_invalid": "This password is not accepted:",
+      "rate_limited": "Too many attempts. Try again in a few minutes.",
+      "generic": "Something went wrong. Try again later."
+    }
   },
   "privacy": {
     "title": "Privacy",

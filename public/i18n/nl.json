@@ -45,6 +45,7 @@
       "close": "Menu sluiten"
     },
     "user": {
+      "profile": "Profiel",
       "change_password": "Wachtwoord wijzigen",
       "logout": "Afmelden",
       "menu_aria": "Gebruikersmenu",
@@ -232,6 +233,37 @@
     "failed": "Aanmelding geweigerd: onbekend account, verkeerd wachtwoord of geen operator.",
     "rate_limited": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
     "error_generic": "Er is iets misgegaan. Probeer het later opnieuw."
+  },
+  "profile": {
+    "title": "Profiel",
+    "email": "E-mailadres",
+    "email_readonly": "Uw e-mailadres is uw aanmeldingsidentificatie: het kan hier niet worden gewijzigd.",
+    "first_name": "Voornaam",
+    "last_name": "Achternaam",
+    "saved": "Profiel opgeslagen",
+    "security": "Beveiliging",
+    "errors": {
+      "invalid": "Sommige waarden zijn ongeldig. Controleer voornaam en achternaam (maximaal 150 tekens).",
+      "rate_limited": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
+      "generic": "Er is een fout opgetreden. Probeer het later opnieuw."
+    }
+  },
+  "change_password": {
+    "title": "Wachtwoord wijzigen",
+    "back": "Terug naar profiel",
+    "current": "Huidig wachtwoord",
+    "new": "Nieuw wachtwoord",
+    "confirm": "Bevestig het nieuwe wachtwoord",
+    "submit": "Wachtwoord wijzigen",
+    "success": "Wachtwoord gewijzigd",
+    "errors": {
+      "mismatch": "De twee nieuwe wachtwoorden komen niet overeen.",
+      "current_password_invalid": "Het huidige wachtwoord is onjuist.",
+      "password_unchanged": "Het nieuwe wachtwoord moet verschillen van het huidige.",
+      "password_invalid": "Dit wachtwoord wordt niet aanvaard:",
+      "rate_limited": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
+      "generic": "Er is een fout opgetreden. Probeer het later opnieuw."
+    }
   },
   "privacy": {
     "title": "Privacy",
