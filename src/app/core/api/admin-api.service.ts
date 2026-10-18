@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import * as Sentry from '@sentry/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { getRuntimeConfig } from '../runtime-config';
@@ -164,6 +165,10 @@ export interface TaxCode {
  */
 export const MAX_LIST_ROWS = 1000;
 const PAGE_SIZE = 200;
+/** Garde-fou contre un serveur qui renverrait des pages vides avec un `next`. */
+export const MAX_LIST_PAGES = Math.ceil(MAX_LIST_ROWS / PAGE_SIZE) + 1;
+/** Seuls paramètres repris de `next` : la requête est reconstruite, jamais suivie telle quelle. */
+const PAGING_PARAMS = ['page', 'cursor'] as const;
 
 type ListBody<T> = T[] | { results: T[]; next: string | null };
 
@@ -172,7 +177,15 @@ export class AdminApiService {
   private readonly http = inject(HttpClient);
   private readonly base = getRuntimeConfig().apiBaseUrl + '/api/v1/admin';
 
-  /** GET d'une liste paginée, pages suivies jusqu'à MAX_LIST_ROWS. Accepte aussi une liste nue. */
+  /**
+   * GET d'une liste paginée, pages suivies jusqu'à MAX_LIST_ROWS / MAX_LIST_PAGES.
+   * Accepte aussi une liste nue.
+   *
+   * `next` n'est jamais suivi tel quel : l'intercepteur y attacherait le jeton
+   * d'opérateur, et un `next` vers une autre origine le ferait fuiter. On exige
+   * la même origine et le même chemin de liste, puis on RECONSTRUIT la requête
+   * sur `${base}/${path}/` en ne reprenant que `page`/`cursor`.
+   */
   private async list<T>(
     path: string,
     filters: Record<string, string | undefined> = {},
@@ -182,13 +195,16 @@ export class AdminApiService {
       if (value) params.set(key, value);
     }
     params.set('page_size', String(PAGE_SIZE));
-    let url: string | null = `${this.base}/${path}/?${params}`;
+    const listUrl = `${this.base}/${path}/`;
+    let url: string | null = `${listUrl}?${params}`;
     const rows: T[] = [];
-    while (url && rows.length < MAX_LIST_ROWS) {
+    for (let pages = 0; url && pages < MAX_LIST_PAGES && rows.length < MAX_LIST_ROWS; pages++) {
       const body: ListBody<T> = await firstValueFrom(this.http.get<ListBody<T>>(url));
       if (Array.isArray(body)) return body;
-      rows.push(...(body?.results ?? []));
-      url = body?.next ?? null;
+      const results = body?.results ?? [];
+      if (results.length === 0) break;
+      rows.push(...results);
+      url = body?.next ? nextPageUrl(body.next, listUrl, params) : null;
     }
     return rows.slice(0, MAX_LIST_ROWS);
   }
@@ -307,4 +323,40 @@ export class AdminApiService {
       ),
     );
   }
+}
+
+/**
+ * URL de la page suivante reconstruite sur `listUrl`, ou null si `next` sort de
+ * l'origine ou du chemin de la liste (signalé : c'est une anomalie du serveur).
+ */
+export function nextPageUrl(next: string, listUrl: string, params: URLSearchParams): string | null {
+  const here = globalThis.location?.href;
+  let candidate: URL;
+  let expected: URL;
+  try {
+    expected = new URL(listUrl, here);
+    candidate = new URL(next, expected);
+  } catch {
+    return refuseNext(next);
+  }
+  if (candidate.origin !== expected.origin || !candidate.pathname.startsWith(expected.pathname)) {
+    return refuseNext(next);
+  }
+  const rebuilt = new URLSearchParams(params);
+  let paged = false;
+  for (const key of PAGING_PARAMS) {
+    const value = candidate.searchParams.get(key);
+    if (value) {
+      rebuilt.set(key, value);
+      paged = true;
+    }
+  }
+  return paged ? `${listUrl}?${rebuilt}` : null;
+}
+
+function refuseNext(next: string): null {
+  const message = 'admin-api: lien de pagination hors origine ou hors liste, ignoré';
+  console.error(message, next);
+  Sentry.captureMessage(message, 'warning');
+  return null;
 }
