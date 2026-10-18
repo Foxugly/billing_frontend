@@ -1,7 +1,9 @@
 import {
   ApplicationConfig,
   ErrorHandler,
+  inject,
   isDevMode,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import * as Sentry from '@sentry/angular';
@@ -15,6 +17,7 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { AuthService } from './core/auth/auth.service';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 
@@ -72,5 +75,9 @@ export const appConfig: ApplicationConfig = {
     ConfirmationService,
     // Sentry : erreurs non gérées d'Angular (inerte sans DSN, cf. sentry-init.ts).
     { provide: ErrorHandler, useValue: Sentry.createErrorHandler() },
+    // Restauration silencieuse : l'accès vit en mémoire seulement, un chargement
+    // le récupère via le cookie HttpOnly de refresh avant la première garde de
+    // route. Ne rejette jamais (bornée à 10 s).
+    provideAppInitializer(() => inject(AuthService).restore()),
   ],
 };

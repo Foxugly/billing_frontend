@@ -4,7 +4,11 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
 
-/** Chemins d'authentification : y attacher le jeton créerait une boucle. */
+/**
+ * Chemins d'authentification : y attacher le jeton créerait une boucle. Ils
+ * passent par le cookie HttpOnly de refresh (`X-Auth-Mode: cookie`, posé par
+ * AuthService) ; tous les autres appels restent en Bearer, sans credentials.
+ */
 const AUTH_PATHS = [
   '/api/v1/auth/token/',
   '/api/v1/auth/token/refresh/',
