@@ -1,8 +1,8 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { provideRouter, Router } from '@angular/router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from './auth.service';
 
@@ -133,5 +133,62 @@ describe('AuthService', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
 
     await changing;
+  });
+
+  it('stocke la paire neuve renvoyée par le changement de mot de passe', async () => {
+    // Le backend révoque tous les refresh : garder l'ancien éjecterait l'opérateur.
+    localStorage.setItem('billing.access', 'ancien-acces');
+    localStorage.setItem('billing.refresh', 'ancien-refresh');
+
+    const changing = service.changePassword('ancien', 'nouveau');
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/password/change/'))
+      .flush({ access: 'acces-neuf', refresh: 'refresh-neuf' });
+    await changing;
+
+    expect(localStorage.getItem('billing.refresh')).toBe('refresh-neuf');
+    expect(localStorage.getItem('billing.access')).toBe('acces-neuf');
+    expect(service.accessToken()).toBe('acces-neuf');
+  });
+
+  it('garde la session sur une erreur serveur du refresh', async () => {
+    localStorage.setItem('billing.access', 'a');
+    localStorage.setItem('billing.refresh', 'r');
+
+    const refreshed = service.refresh();
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/'))
+      .flush({}, { status: 502, statusText: 'Bad Gateway' });
+
+    await expect(refreshed).rejects.toBeTruthy();
+    expect(localStorage.getItem('billing.refresh')).toBe('r');
+  });
+
+  it('ne lance qu’un seul refresh pour des demandes simultanées', async () => {
+    localStorage.setItem('billing.access', 'a');
+    localStorage.setItem('billing.refresh', 'r');
+
+    const first = service.refresh();
+    const second = service.refresh();
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/token/refresh/'))
+      .flush({ access: 'b', refresh: 'r2' });
+
+    expect(await first).toBe(true);
+    expect(await second).toBe(true);
+  });
+
+  it('met le refresh sur liste noire au logout', () => {
+    localStorage.setItem('billing.access', 'a');
+    localStorage.setItem('billing.refresh', 'r');
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    service.logout();
+    expect(navigate).toHaveBeenCalledWith(['/login']);
+
+    const req = http.expectOne((r) => r.url.endsWith('/api/v1/auth/token/blacklist/'));
+    expect(req.request.body).toEqual({ refresh: 'r' });
+    req.flush({});
+    expect(localStorage.getItem('billing.refresh')).toBeNull();
   });
 });
