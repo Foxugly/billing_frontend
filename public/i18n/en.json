@@ -45,6 +45,7 @@
       "close": "Close menu"
     },
     "user": {
+      "profile": "Profile",
       "change_password": "Change password",
       "logout": "Log out",
       "menu_aria": "User menu",
@@ -232,6 +233,21 @@
     "failed": "Login refused: unknown account, wrong password, or not an operator.",
     "rate_limited": "Too many attempts. Try again in a few minutes.",
     "error_generic": "Something went wrong. Please try again later."
+  },
+  "profile": {
+    "title": "Profile",
+    "email": "Email address",
+    "email_readonly": "Your email address is your sign-in identifier: it cannot be changed here.",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "saved": "Profile saved",
+    "security": "Security",
+    "password_hint": "The password is changed in the Django administration, which opens in a new tab; you may be asked to sign in there.",
+    "errors": {
+      "invalid": "Some values are invalid. Check the first and last name (150 characters maximum).",
+      "rate_limited": "Too many attempts. Try again in a few minutes.",
+      "generic": "Something went wrong. Try again later."
+    }
   },
   "privacy": {
     "title": "Privacy",

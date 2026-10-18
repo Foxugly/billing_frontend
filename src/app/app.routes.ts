@@ -67,6 +67,12 @@ export const routes: Routes = [
             (m) => m.InvoicesListComponent,
           ),
       },
+      {
+        path: 'profile',
+        data: { titleKey: 'profile.title' },
+        loadComponent: () =>
+          import('./features/profile/profile.component').then((m) => m.ProfileComponent),
+      },
     ],
   },
 

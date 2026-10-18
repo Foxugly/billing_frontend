@@ -45,6 +45,7 @@
       "close": "Fermer le menu"
     },
     "user": {
+      "profile": "Profil",
       "change_password": "Changer de mot de passe",
       "logout": "Déconnexion",
       "menu_aria": "Menu utilisateur",
@@ -232,6 +233,21 @@
     "failed": "Connexion refusée : compte inconnu, mot de passe erroné, ou compte non-opérateur.",
     "rate_limited": "Trop de tentatives. Réessayez dans quelques minutes.",
     "error_generic": "Une erreur est survenue. Réessayez plus tard."
+  },
+  "profile": {
+    "title": "Profil",
+    "email": "Adresse e-mail",
+    "email_readonly": "L'adresse e-mail est votre identifiant de connexion : elle ne peut pas être modifiée ici.",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "saved": "Profil enregistré",
+    "security": "Sécurité",
+    "password_hint": "Le mot de passe se change dans l'administration Django, qui s'ouvre dans un nouvel onglet ; il peut vous être demandé de vous y connecter.",
+    "errors": {
+      "invalid": "Certaines valeurs sont invalides. Vérifiez le prénom et le nom (150 caractères maximum).",
+      "rate_limited": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "generic": "Une erreur est survenue. Réessayez plus tard."
+    }
   },
   "privacy": {
     "title": "Confidentialité",

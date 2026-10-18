@@ -72,19 +72,56 @@ describe('AuthService', () => {
 
   it('range les jetons en session quand « se souvenir » est décoché', async () => {
     const login = service.login('ops@example.com', 'x', false);
-    http.expectOne((r) => r.url.endsWith('/api/v1/auth/token/')).flush({ access: 'a', refresh: 'r' });
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/token/'))
+      .flush({ access: 'a', refresh: 'r' });
     // Le service enchaine sur /me/ apres un await : laisser la microtache passer.
     await new Promise((resolve) => setTimeout(resolve, 0));
-    http.expectOne((r) => r.url.endsWith('/api/v1/auth/me/')).flush({
-      id: 1,
-      email: 'ops@example.com',
-      displayName: 'Ops',
-      isStaff: true,
-      isSuperuser: true,
-    });
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/me/'))
+      .flush({
+        id: 1,
+        email: 'ops@example.com',
+        firstName: 'Ops',
+        lastName: '',
+        displayName: 'Ops',
+        isStaff: true,
+        isSuperuser: true,
+      });
     await login;
 
     expect(sessionStorage.getItem('billing.access')).toBe('a');
     expect(localStorage.getItem('billing.access')).toBeNull();
+  });
+
+  it('envoie le PATCH du profil et met à jour l’utilisateur courant', async () => {
+    const saved = service.updateProfile({ firstName: 'Ada', lastName: 'Lovelace' });
+    const req = http.expectOne((r) => r.url.endsWith('/api/v1/auth/me/'));
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ firstName: 'Ada', lastName: 'Lovelace' });
+    req.flush({
+      id: 1,
+      email: 'ops@example.com',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      displayName: 'Ada Lovelace',
+      isStaff: true,
+      isSuperuser: false,
+    });
+
+    await saved;
+    expect(service.currentUser()?.displayName).toBe('Ada Lovelace');
+  });
+
+  it('garde la session quand la lecture du profil échoue', async () => {
+    localStorage.setItem('billing.access', 'a');
+
+    const loading = service.fetchProfile();
+    http
+      .expectOne((r) => r.url.endsWith('/api/v1/auth/me/'))
+      .flush({}, { status: 500, statusText: 'Server Error' });
+
+    await expect(loading).rejects.toBeTruthy();
+    expect(localStorage.getItem('billing.access')).toBe('a');
   });
 });

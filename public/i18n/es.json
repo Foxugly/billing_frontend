@@ -45,6 +45,7 @@
       "close": "Cerrar menú"
     },
     "user": {
+      "profile": "Perfil",
       "change_password": "Cambiar contraseña",
       "logout": "Cerrar sesión",
       "menu_aria": "Menú de usuario",
@@ -232,6 +233,21 @@
     "failed": "Acceso rechazado: cuenta desconocida, contraseña incorrecta o cuenta no operadora.",
     "rate_limited": "Demasiados intentos. Inténtelo de nuevo dentro de unos minutos.",
     "error_generic": "Se ha producido un error. Inténtelo de nuevo más tarde."
+  },
+  "profile": {
+    "title": "Perfil",
+    "email": "Correo electrónico",
+    "email_readonly": "Su correo electrónico es su identificador de acceso: no se puede modificar aquí.",
+    "first_name": "Nombre",
+    "last_name": "Apellidos",
+    "saved": "Perfil guardado",
+    "security": "Seguridad",
+    "password_hint": "La contraseña se cambia en la administración de Django, que se abre en una pestaña nueva; es posible que se le pida iniciar sesión allí.",
+    "errors": {
+      "invalid": "Algunos valores no son válidos. Revise el nombre y los apellidos (150 caracteres como máximo).",
+      "rate_limited": "Demasiados intentos. Vuelva a intentarlo en unos minutos.",
+      "generic": "Se ha producido un error. Vuelva a intentarlo más tarde."
+    }
   },
   "privacy": {
     "title": "Privacy",

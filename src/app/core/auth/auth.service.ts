@@ -8,9 +8,25 @@ import { getRuntimeConfig } from '../runtime-config';
 export interface CurrentUser {
   id: number;
   email: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
   isStaff: boolean;
   isSuperuser: boolean;
+}
+
+/** Champs modifiables depuis la page Profil (l'email est l'identifiant : lecture seule). */
+export interface ProfileUpdate {
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Le backend n'expose pas de changement de mot de passe : les opérateurs passent
+ * par celui du Django admin (comptes staff, session admin distincte du JWT).
+ */
+export function passwordChangeUrl(): string {
+  return `${getRuntimeConfig().apiBaseUrl}/admin/password_change/`;
 }
 
 interface TokenPair {
@@ -63,6 +79,24 @@ export class AuthService {
       this.clear();
       return null;
     }
+  }
+
+  /**
+   * Relit le profil pour la page Profil. Contrairement à `loadCurrentUser`, une
+   * erreur est propagée (et la session conservée) : la page l'affiche.
+   */
+  async fetchProfile(): Promise<CurrentUser> {
+    const user = await firstValueFrom(this.http.get<CurrentUser>(`${this.base}/api/v1/auth/me/`));
+    this._user.set(user);
+    return user;
+  }
+
+  async updateProfile(changes: ProfileUpdate): Promise<CurrentUser> {
+    const user = await firstValueFrom(
+      this.http.patch<CurrentUser>(`${this.base}/api/v1/auth/me/`, changes),
+    );
+    this._user.set(user);
+    return user;
   }
 
   /** Rafraîchit l'accès. Renvoie false si la session est définitivement perdue. */

@@ -45,6 +45,7 @@
       "close": "Menu sluiten"
     },
     "user": {
+      "profile": "Profiel",
       "change_password": "Wachtwoord wijzigen",
       "logout": "Afmelden",
       "menu_aria": "Gebruikersmenu",
@@ -232,6 +233,21 @@
     "failed": "Aanmelding geweigerd: onbekend account, verkeerd wachtwoord of geen operator.",
     "rate_limited": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
     "error_generic": "Er is iets misgegaan. Probeer het later opnieuw."
+  },
+  "profile": {
+    "title": "Profiel",
+    "email": "E-mailadres",
+    "email_readonly": "Uw e-mailadres is uw aanmeldingsidentificatie: het kan hier niet worden gewijzigd.",
+    "first_name": "Voornaam",
+    "last_name": "Achternaam",
+    "saved": "Profiel opgeslagen",
+    "security": "Beveiliging",
+    "password_hint": "Het wachtwoord wijzigt u in de Django-beheeromgeving, die in een nieuw tabblad opent; mogelijk moet u zich daar aanmelden.",
+    "errors": {
+      "invalid": "Sommige waarden zijn ongeldig. Controleer voornaam en achternaam (maximaal 150 tekens).",
+      "rate_limited": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
+      "generic": "Er is een fout opgetreden. Probeer het later opnieuw."
+    }
   },
   "privacy": {
     "title": "Privacy",

@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService, passwordChangeUrl } from '../../auth/auth.service';
 
 /**
  * Polymorphic user slot — the last of the topmenu actions (fleet standard §6).
  * Logged out → a "Sign in" button (outlined emerald) routing to /login.
  * Logged in  → a custom dropdown (Profile / Change password / Logout) anchored
- *              to the right. Closes on outside click and on Escape, like the
+ *              to the right. « Changer de mot de passe » ouvre le Django admin :
+ *              le backend n'a pas d'endpoint dédié. Closes on outside click and on Escape, like the
  *              sibling language-switcher.
  */
 @Component({
@@ -27,6 +28,7 @@ export class UserMenuComponent {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   protected readonly open = signal(false);
+  protected readonly passwordUrl = passwordChangeUrl();
 
   protected toggle(): void {
     this.open.update((v) => !v);
