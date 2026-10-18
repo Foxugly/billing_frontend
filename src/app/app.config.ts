@@ -1,4 +1,10 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  isDevMode,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
+import * as Sentry from '@sentry/angular';
 import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -64,5 +70,7 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     ConfirmationService,
+    // Sentry : erreurs non gérées d'Angular (inerte sans DSN, cf. sentry-init.ts).
+    { provide: ErrorHandler, useValue: Sentry.createErrorHandler() },
   ],
 };
