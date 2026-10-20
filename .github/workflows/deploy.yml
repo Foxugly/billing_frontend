@@ -86,11 +86,18 @@ jobs:
           # lance le runtime-fetch puis recharge nginx.
           APP=/var/www/django_websites/billing_frontend
           DOC="$APP/dist/billing-frontend/browser"
-          GB="git -C $APP -c safe.directory=$APP show origin/main"
+          # Root lit les blobs qu'il installe dans SON PROPRE miroir nu (root:root 700),
+          # alimente depuis GitHub au SHA deploye — jamais dans le checkout django, dont
+          # .git (refs, config, hooks) est reecrivable par django (escalade vers root).
+          M=/var/lib/fleet-deploy/billing_frontend.git
+          GB="git --git-dir=$M show $SHA"
           cat > /tmp/ssm-params.json <<EOF
           { "commands": [
             "chown -R django:www-data $APP",
             "sudo -u django bash -c 'umask 027; cd $APP && git fetch --quiet origin main && git reset --hard --quiet origin/main'",
+            "install -d -m 700 -o root -g root /var/lib/fleet-deploy",
+            "[ -d $M ] || git init --quiet --bare $M",
+            "git --git-dir=$M fetch --quiet --depth=1 https://github.com/Foxugly/billing_frontend.git $SHA && git --git-dir=$M cat-file -e $SHA^{commit} || exit 1",
             "$GB:deploy/systemd/billing-frontend-runtime-fetch.service > /etc/systemd/system/billing-frontend-runtime-fetch.service",
             "$GB:deploy/fetch-frontend-runtime-from-ssm.sh > /usr/local/sbin/billing-frontend-runtime-fetch.sh && chmod 0755 /usr/local/sbin/billing-frontend-runtime-fetch.sh && chown root:root /usr/local/sbin/billing-frontend-runtime-fetch.sh",
             "$GB:deploy/nginx/billing-frontend.conf > /etc/nginx/sites-available/billing-frontend.conf && ln -sf /etc/nginx/sites-available/billing-frontend.conf /etc/nginx/sites-enabled/billing-frontend.conf",
