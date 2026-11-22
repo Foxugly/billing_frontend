@@ -4,7 +4,7 @@ SPA Angular servie sur `billing.foxugly.com`. **Réservée aux opérateurs** : p
 d'inscription, pas de mot de passe oublié — le backend refuse tout compte non-staff,
 et les comptes sont créés par `createsuperuser`.
 
-Elle consomme `/api/admin/` de `billing-api.foxugly.com` (JWT), API entièrement
+Elle consomme `/api/v1/admin/` et `/api/v1/auth/` de `billing-api.foxugly.com` (JWT), API entièrement
 disjointe de l'API service-à-service signée en HMAC que consomment les sites de la flotte.
 
 - Backend : `Foxugly/billing_server`
