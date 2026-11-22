@@ -2,7 +2,6 @@ import {
   ApplicationConfig,
   ErrorHandler,
   inject,
-  isDevMode,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
@@ -19,6 +18,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { TRANSLOCO_CONFIG } from './core/i18n/transloco-config';
 import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 
 // Emerald is the single fleet accent (STANDARD-frontend-layout.md §9). Remap BOTH
@@ -53,12 +53,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimations(),
     provideTransloco({
-      config: {
-        availableLangs: ['fr', 'nl', 'en', 'it', 'es'],
-        defaultLang: 'fr',
-        reRenderOnLangChange: true,
-        prodMode: !isDevMode(),
-      },
+      config: TRANSLOCO_CONFIG,
       loader: TranslocoHttpLoader,
     }),
     providePrimeNG({
