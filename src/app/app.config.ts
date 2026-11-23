@@ -5,10 +5,8 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import * as Sentry from '@sentry/angular';
 import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideTransloco } from '@jsverse/transloco';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
@@ -18,6 +16,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
+import { LazySentryErrorHandler } from '../sentry-init';
 import { TRANSLOCO_CONFIG } from './core/i18n/transloco-config';
 import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 
@@ -51,7 +50,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     // Attache le JWT et retente une fois apres un 401 en rafraichissant.
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideAnimations(),
     provideTransloco({
       config: TRANSLOCO_CONFIG,
       loader: TranslocoHttpLoader,
@@ -68,8 +66,9 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     ConfirmationService,
-    // Sentry : erreurs non gérées d'Angular (inerte sans DSN, cf. sentry-init.ts).
-    { provide: ErrorHandler, useValue: Sentry.createErrorHandler() },
+    // Sentry : erreurs non gérées d'Angular. Le SDK est chargé à la demande
+    // (import() dynamique, hors bundle initial) et reste absent sans DSN.
+    { provide: ErrorHandler, useClass: LazySentryErrorHandler },
     // Restauration silencieuse : l'accès vit en mémoire seulement, un chargement
     // le récupère via le cookie HttpOnly de refresh avant la première garde de
     // route. Ne rejette jamais (bornée à 10 s).

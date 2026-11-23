@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import * as Sentry from '@sentry/angular';
+import { captureMessage } from '../../../sentry-init';
 import { firstValueFrom } from 'rxjs';
 
 import { getRuntimeConfig } from '../runtime-config';
@@ -357,6 +357,6 @@ export function nextPageUrl(next: string, listUrl: string, params: URLSearchPara
 function refuseNext(next: string): null {
   const message = 'admin-api: lien de pagination hors origine ou hors liste, ignoré';
   console.error(message, next);
-  Sentry.captureMessage(message, 'warning');
+  captureMessage(message, 'warning');
   return null;
 }
