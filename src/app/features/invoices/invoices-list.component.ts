@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
@@ -246,6 +246,7 @@ function ligneVide(): LigneSaisie {
       </p-dialog>
     </section>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .toolbar {

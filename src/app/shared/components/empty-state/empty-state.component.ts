@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 type EmptyTone = 'emerald' | 'rose' | 'gray';
 
@@ -22,6 +22,7 @@ type EmptyTone = 'emerald' | 'rose' | 'gray';
       <ng-content />
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './empty-state.component.scss',
 })
 export class EmptyStateComponent {

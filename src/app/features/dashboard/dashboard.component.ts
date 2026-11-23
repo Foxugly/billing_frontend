@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MessageService } from '@openng/optimus-ui/api';
@@ -74,6 +74,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
       }
     </section>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .tiles {

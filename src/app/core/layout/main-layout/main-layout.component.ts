@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { TopmenuComponent } from '../topmenu/topmenu.component';
@@ -15,6 +15,7 @@ import { FooterComponent } from '../footer/footer.component';
   standalone: true,
   imports: [RouterOutlet, TranslocoPipe, TopmenuComponent, FooterComponent],
   templateUrl: './main-layout.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent {}

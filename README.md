@@ -1,6 +1,6 @@
 # billing_frontend — console d'exploitation de la facturation
 
-SPA Angular servie sur `billing.foxugly.com`. **Réservée aux opérateurs** : pas
+SPA Angular 22 servie sur `billing.foxugly.com`. **Réservée aux opérateurs** : pas
 d'inscription, pas de mot de passe oublié — le backend refuse tout compte non-staff,
 et les comptes sont créés par `createsuperuser`.
 
@@ -10,7 +10,7 @@ disjointe de l'API service-à-service signée en HMAC que consomment les sites d
 - Backend : `Foxugly/billing_server`
 - Standard de layout : `STANDARD-frontend-layout.md` (dépôt `foxugly-ops`)
 - Base : l'app de référence `foxugly-ops/frontend-reference/foo-app`
-- UI : **Optimus UI** (`@openng/optimus-ui`, fork MIT communautaire de PrimeNG 21 : mêmes
+- UI : **Optimus UI 2** (`@openng/optimus-ui`, fork MIT communautaire de PrimeNG 21 : mêmes
   composants, sélecteurs `p-*` et thèmes Aura ; icônes `pi pi-*` via `@openng/icons`). **PrimeNG ≥ 22
   est interdit dans la flotte** (licence commerciale) — voir `STANDARD-frontend-layout.md` « Bibliothèque UI ».
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
@@ -14,6 +14,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
       <p>{{ 'privacy.body' | transloco }}</p>
     </article>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .privacy {
