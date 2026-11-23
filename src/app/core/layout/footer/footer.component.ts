@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { environment } from '../../../../environments/environment';
@@ -22,6 +22,7 @@ function resolveVersion(): string {
   standalone: true,
   imports: [RouterLink, TranslocoPipe],
   templateUrl: './footer.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './footer.component.scss',
 })
 export class FooterComponent {

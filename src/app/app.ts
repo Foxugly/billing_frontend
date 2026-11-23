@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastModule } from '@openng/optimus-ui/toast';
 import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog';
@@ -13,6 +13,7 @@ import { StaleChunkService } from './core/app-update/stale-chunk.service';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, ToastModule, ConfirmDialogModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <router-outlet />
     <p-toast />

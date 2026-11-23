@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -37,6 +37,7 @@ interface NavLink {
     UserMenuComponent,
   ],
   templateUrl: './topmenu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './topmenu.component.scss',
 })
 export class TopmenuComponent {

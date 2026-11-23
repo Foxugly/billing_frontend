@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import * as Sentry from '@sentry/angular';
 import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideTransloco } from '@jsverse/transloco';
 import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
@@ -50,7 +50,7 @@ export const appConfig: ApplicationConfig = {
     { provide: TitleStrategy, useClass: AppTitleStrategy },
     provideRouter(routes, withComponentInputBinding()),
     // Attache le JWT et retente une fois apres un 401 en rafraichissant.
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor])),
     provideAnimations(),
     provideTransloco({
       config: TRANSLOCO_CONFIG,
