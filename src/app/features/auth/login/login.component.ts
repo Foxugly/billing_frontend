@@ -3,12 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
-import { MessageService } from 'primeng/api';
-import { PasswordModule } from 'primeng/password';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { MessageModule } from '@openng/optimus-ui/message';
+import { MessageService } from '@openng/optimus-ui/api';
+import { PasswordModule } from '@openng/optimus-ui/password';
 import { AuthCardComponent } from '../../../shared/components/auth-card/auth-card.component';
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -41,7 +41,6 @@ export class LoginComponent {
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
 
-
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -62,7 +61,10 @@ export class LoginComponent {
     this.errorKey.set(null);
     try {
       await this.auth.login(email, password, remember);
-      this.messages.add({ severity: 'success', summary: this.transloco.translate('login.success') });
+      this.messages.add({
+        severity: 'success',
+        summary: this.transloco.translate('login.success'),
+      });
       void this.router.navigate(['/dashboard']);
     } catch (err) {
       // Un compte non-operateur est refuse par le backend : le dire clairement
@@ -73,9 +75,6 @@ export class LoginComponent {
       this.submitting.set(false);
     }
   }
-
-
-
 }
 
 function loginErrorKey(err: unknown): string {

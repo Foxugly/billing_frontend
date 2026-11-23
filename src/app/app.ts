@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from '@openng/optimus-ui/toast';
+import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog';
 import { LanguageService } from './core/i18n/language.service';
 import { StaleChunkService } from './core/app-update/stale-chunk.service';
 

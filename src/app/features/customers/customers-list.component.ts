@@ -3,12 +3,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import { AdminApiService, BillingApp, BillingCustomer } from '../../core/api/admin-api.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -95,7 +95,11 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
                      Son absence sur un client qui a payé signale une livraison
                      jamais arrivée : c'est un symptôme, pas un détail. -->
                 @if (c.customer) {
-                  <p-tag severity="success" icon="pi pi-link" [value]="'customers.linked' | transloco" />
+                  <p-tag
+                    severity="success"
+                    icon="pi pi-link"
+                    [value]="'customers.linked' | transloco"
+                  />
                 } @else {
                   <p-tag severity="warn" [value]="'customers.unlinked' | transloco" />
                 }

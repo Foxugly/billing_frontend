@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -53,9 +53,30 @@ const APP: BillingApp = {
 };
 
 const PRICES: StripePrice[] = [
-  { id: 'price_m', unit_amount: 500, currency: 'EUR', interval: 'month', nickname: '', product_name: 'Une équipe' },
-  { id: 'price_y', unit_amount: 5000, currency: 'EUR', interval: 'year', nickname: '', product_name: 'Une équipe' },
-  { id: 'price_one', unit_amount: 9900, currency: 'EUR', interval: '', nickname: '', product_name: 'Audit' },
+  {
+    id: 'price_m',
+    unit_amount: 500,
+    currency: 'EUR',
+    interval: 'month',
+    nickname: '',
+    product_name: 'Une équipe',
+  },
+  {
+    id: 'price_y',
+    unit_amount: 5000,
+    currency: 'EUR',
+    interval: 'year',
+    nickname: '',
+    product_name: 'Une équipe',
+  },
+  {
+    id: 'price_one',
+    unit_amount: 9900,
+    currency: 'EUR',
+    interval: '',
+    nickname: '',
+    product_name: 'Audit',
+  },
 ];
 
 describe('PlansListComponent', () => {

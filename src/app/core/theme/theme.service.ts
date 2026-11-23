@@ -17,7 +17,7 @@ function readInitialMode(): Mode {
 /**
  * Fleet-standard theme service (STANDARD-frontend-layout.md §4): a signal that
  * persists to localStorage['theme'] and toggles `.dark-mode` on <html>, matching
- * `providePrimeNG({ theme: { options: { darkModeSelector: '.dark-mode' } } })`.
+ * `provideOptimus({ theme: { options: { darkModeSelector: '.dark-mode' } } })`.
  * Falls back to `prefers-color-scheme` when nothing is stored. The anti-FOUC
  * inline script in index.html sets the class before bootstrap; this service then
  * takes over.

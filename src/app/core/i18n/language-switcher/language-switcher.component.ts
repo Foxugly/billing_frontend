@@ -9,7 +9,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { TooltipModule } from 'primeng/tooltip';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { AVAILABLE_LANGUAGES, LanguageCode } from '../available-languages';
 import { LanguageService } from '../language.service';
 

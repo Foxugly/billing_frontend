@@ -1,16 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import {
   AdminApiService,
@@ -217,7 +217,12 @@ function planVide(appId: number | null): Partial<BillingPlan> {
           </div>
           <div class="field">
             <label for="quotas">{{ 'plans.quotas_json' | transloco }}</label>
-            <input pInputText id="quotas" [(ngModel)]="quotasText" [disabled]="!!draft.per_unit_quota_key" />
+            <input
+              pInputText
+              id="quotas"
+              [(ngModel)]="quotasText"
+              [disabled]="!!draft.per_unit_quota_key"
+            />
             @if (quotasError()) {
               <small class="error">{{ 'plans.quotas_invalid' | transloco }}</small>
             }

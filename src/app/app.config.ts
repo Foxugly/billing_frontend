@@ -10,10 +10,10 @@ import { TitleStrategy, provideRouter, withComponentInputBinding } from '@angula
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideTransloco } from '@jsverse/transloco';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { providePrimeNG } from 'primeng/config';
-import { definePreset } from '@primeuix/themes';
-import Aura from '@primeuix/themes/aura';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
+import { provideOptimus } from '@openng/optimus-ui/config';
+import { definePreset } from '@openng/optimus-ui-themes';
+import Aura from '@openng/optimus-ui-themes/aura';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
@@ -24,7 +24,7 @@ import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 // Emerald is the single fleet accent (STANDARD-frontend-layout.md §9). Remap BOTH
 // the `primary` semantic AND the `green` primitive onto Emerald so that
 // `severity="success"` renders in the exact same emerald as `primary` — otherwise
-// `success` falls back to PrimeNG's default green and the UI shows two greens.
+// `success` falls back to Optimus UI's default green and the UI shows two greens.
 const EMERALD_SCALE = {
   50: '{emerald.50}',
   100: '{emerald.100}',
@@ -56,7 +56,7 @@ export const appConfig: ApplicationConfig = {
       config: TRANSLOCO_CONFIG,
       loader: TranslocoHttpLoader,
     }),
-    providePrimeNG({
+    provideOptimus({
       theme: {
         preset: BillingAura,
         options: {

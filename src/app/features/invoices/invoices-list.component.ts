@@ -2,16 +2,16 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { DatePickerModule } from 'primeng/datepicker';
-import { DialogModule } from 'primeng/dialog';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { ConfirmationService, MessageService } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { DatePickerModule } from '@openng/optimus-ui/datepicker';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import {
   AdminApiService,
@@ -69,11 +69,7 @@ function ligneVide(): LigneSaisie {
       <app-page-header [icon]="'pi-file'" [title]="'invoices.title' | transloco" />
 
       <div class="toolbar">
-        <p-button
-          [label]="'invoices.new' | transloco"
-          icon="pi pi-plus"
-          (onClick)="openForm()"
-        />
+        <p-button [label]="'invoices.new' | transloco" icon="pi pi-plus" (onClick)="openForm()" />
         <p-button
           [label]="'invoices.export' | transloco"
           icon="pi pi-download"
@@ -105,7 +101,9 @@ function ligneVide(): LigneSaisie {
             <tr>
               <td>{{ f.number || ('invoices.draft' | transloco) }}</td>
               <td>{{ f.customer_email || '—' }}</td>
-              <td><code>{{ f.origin }}</code></td>
+              <td>
+                <code>{{ f.origin }}</code>
+              </td>
               <td><p-tag [severity]="severity(f.status)" [value]="f.status" /></td>
               <td class="amount">{{ f.total / 100 | currency: f.currency.toUpperCase() }}</td>
               <td>{{ f.created ? (f.created | date: 'shortDate') : '—' }}</td>
@@ -393,16 +391,14 @@ export class InvoicesListComponent {
     try {
       await this.api.createInvoice({
         customer: { email: this.email, name: this.name },
-        lines: this.lines().map(
-          (l): InvoiceLineDraft => ({
-            description: l.description,
-            quantity: l.quantity,
-            // Arrondi explicite : 75.10 € vaut 7510 centimes, et un flottant
-            // non arrondi donnerait 7509.
-            unit_amount: Math.round((l.unit_euros ?? 0) * 100),
-            tax_code: l.tax_code || undefined,
-          }),
-        ),
+        lines: this.lines().map((l): InvoiceLineDraft => ({
+          description: l.description,
+          quantity: l.quantity,
+          // Arrondi explicite : 75.10 € vaut 7510 centimes, et un flottant
+          // non arrondi donnerait 7509.
+          unit_amount: Math.round((l.unit_euros ?? 0) * 100),
+          tax_code: l.tax_code || undefined,
+        })),
         days_until_due: 30,
       });
       this.formOpen.set(false);

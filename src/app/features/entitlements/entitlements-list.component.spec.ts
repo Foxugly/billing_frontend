@@ -5,7 +5,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '../../core/i18n/transloco-loader';
-import { MessageService } from 'primeng/api';
+import { MessageService } from '@openng/optimus-ui/api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminApiService, BillingPlan, Entitlement } from '../../core/api/admin-api.service';
