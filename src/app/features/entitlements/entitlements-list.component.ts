@@ -3,16 +3,16 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
-import { MessageModule } from 'primeng/message';
-import { SelectModule } from 'primeng/select';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { MessageService } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { MessageModule } from '@openng/optimus-ui/message';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import {
   AdminApiService,
@@ -105,9 +105,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
               <td>
                 <p-tag
                   [severity]="e.is_paid ? 'success' : 'secondary'"
-                  [value]="
-                    (e.is_paid ? 'entitlements.open' : 'entitlements.closed') | transloco
-                  "
+                  [value]="(e.is_paid ? 'entitlements.open' : 'entitlements.closed') | transloco"
                 />
                 @if (e.status) {
                   <span class="status">{{ e.status }}</span>

@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TooltipModule } from 'primeng/tooltip';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ThemeService } from '../../theme/theme.service';
 import { LanguageSwitcherComponent } from '../../i18n/language-switcher/language-switcher.component';
@@ -28,7 +28,14 @@ interface NavLink {
 @Component({
   selector: 'app-topmenu',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TooltipModule, TranslocoPipe, LanguageSwitcherComponent, UserMenuComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    TooltipModule,
+    TranslocoPipe,
+    LanguageSwitcherComponent,
+    UserMenuComponent,
+  ],
   templateUrl: './topmenu.component.html',
   styleUrl: './topmenu.component.scss',
 })

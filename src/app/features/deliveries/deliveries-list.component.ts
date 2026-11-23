@@ -2,12 +2,12 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { SelectButtonModule } from 'primeng/selectbutton';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { MessageService } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { SelectButtonModule } from '@openng/optimus-ui/selectbutton';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 import { FormsModule } from '@angular/forms';
 
 import { AdminApiService, Delivery } from '../../core/api/admin-api.service';

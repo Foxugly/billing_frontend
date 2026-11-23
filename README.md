@@ -10,6 +10,9 @@ disjointe de l'API service-à-service signée en HMAC que consomment les sites d
 - Backend : `Foxugly/billing_server`
 - Standard de layout : `STANDARD-frontend-layout.md` (dépôt `foxugly-ops`)
 - Base : l'app de référence `foxugly-ops/frontend-reference/foo-app`
+- UI : **Optimus UI** (`@openng/optimus-ui`, fork MIT communautaire de PrimeNG 21 : mêmes
+  composants, sélecteurs `p-*` et thèmes Aura ; icônes `pi pi-*` via `@openng/icons`). **PrimeNG ≥ 22
+  est interdit dans la flotte** (licence commerciale) — voir `STANDARD-frontend-layout.md` « Bibliothèque UI ».
 
 ## Développement
 

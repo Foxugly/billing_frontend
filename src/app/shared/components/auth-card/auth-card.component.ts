@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { CardModule } from 'primeng/card';
+import { CardModule } from '@openng/optimus-ui/card';
 
 /**
  * Shared auth card shell (STANDARD-frontend-layout.md §Auth): the centred

@@ -3,13 +3,13 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
-import { CheckboxModule } from 'primeng/checkbox';
-import { InputTextModule } from 'primeng/inputtext';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
+import { MessageService } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import { AdminApiService, StripeEvent } from '../../core/api/admin-api.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -86,7 +86,9 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
                   <p-tag severity="secondary" [value]="'events.test_mode' | transloco" />
                 }
               </td>
-              <td><code>{{ e.type }}</code></td>
+              <td>
+                <code>{{ e.type }}</code>
+              </td>
               <td>
                 @if (e.app_slug) {
                   <a (click)="openEntitlement(e)">

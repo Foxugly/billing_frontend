@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { MessageService } from 'primeng/api';
-import { SkeletonModule } from 'primeng/skeleton';
-import { TagModule } from 'primeng/tag';
+import { MessageService } from '@openng/optimus-ui/api';
+import { SkeletonModule } from '@openng/optimus-ui/skeleton';
+import { TagModule } from '@openng/optimus-ui/tag';
 
 import { AdminApiService, Dashboard } from '../../core/api/admin-api.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -39,7 +39,11 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
           </article>
           <!-- Les échecs sont la seule tuile cliquable : c'est la seule qui appelle
                une action. Zéro échec s'affiche en neutre, pas en rouge. -->
-          <a class="tile tile--action" routerLink="/deliveries" [queryParams]="{ status: 'failed' }">
+          <a
+            class="tile tile--action"
+            routerLink="/deliveries"
+            [queryParams]="{ status: 'failed' }"
+          >
             <span class="tile__label">{{ 'dashboard.failed' | transloco }}</span>
             <strong class="tile__value" [class.tile__value--alert]="d.deliveries.failed > 0">
               {{ d.deliveries.failed }}

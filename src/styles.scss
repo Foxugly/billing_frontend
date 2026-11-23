@@ -1,4 +1,4 @@
-@use 'primeicons/primeicons.css';
+@use '@openng/icons/openng-icons.css';
 @use 'styles/tokens'; // design tokens de la flotte (:root + .dark-mode)
 @use 'styles/shell'; // shell partagé main-layout / public-layout
 @use 'styles/forms-meta';
@@ -34,7 +34,7 @@ a:hover {
   color: var(--accent-strong);
 }
 
-/* Topbar (dark): make PrimeNG secondary text-buttons legible on the dark bar. */
+/* Topbar (dark): make Optimus UI secondary text-buttons legible on the dark bar. */
 .topbar .p-button.p-button-secondary.p-button-text {
   color: var(--chrome-ink);
 }
