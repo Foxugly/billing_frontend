@@ -23,7 +23,22 @@ if (config.sentryDsn) {
     dsn: config.sentryDsn,
     environment: config.sentryEnv,
     release: config.sentryRelease || undefined,
-    sendDefaultPii: false,
+    // Sentry 11 a remplacé `sendDefaultPii` par `dataCollection`, plus permissif
+    // par défaut : on fixe explicitement la base restrictive de la v10.
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: {
+        request: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+        response: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      },
+      httpBodies: [],
+      urlQueryParams: { deny: ['forwarded', '-ip', 'remote-', 'via', '-user'] },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      queues: false,
+      graphQL: { document: false, variables: false },
+    },
     // Jetons d'opérateur, en-têtes Authorization et paramètres sensibles masqués
     // dans les URL, messages, exceptions et breadcrumbs (sentry-scrub.ts).
     beforeSend: (event) => scrubEvent(event),

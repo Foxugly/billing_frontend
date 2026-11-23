@@ -5,7 +5,7 @@
  * refresh) qui fuit dans un message d'erreur, un breadcrumb ou une URL suffit à
  * l'usurper. On masque donc tout JWT et tout `Bearer …` où qu'ils apparaissent,
  * les paramètres d'URL sensibles, et on retire les en-têtes `Authorization` et
- * les cookies. `sendDefaultPii: false` (sentry-init.ts) couvre le reste.
+ * les cookies. `dataCollection` restrictif (sentry-init.ts) couvre le reste.
  */
 import type { Breadcrumb, Event } from '@sentry/angular';
 
